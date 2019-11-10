@@ -129,7 +129,6 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
-<<<<<<< HEAD
   /********************************************/
 	
 	
@@ -182,11 +181,6 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 	
 	
    /*******************************************/
-=======
-  /********************************************
-   in here you write your service code
-   *******************************************/
->>>>>>> 83b5678eb423f25f722abee4939afdc1b757a271
   return ReturnEvent;
 }
 
