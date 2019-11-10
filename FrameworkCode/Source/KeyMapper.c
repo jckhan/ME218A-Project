@@ -23,12 +23,10 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "KeyMapper.h"
-<<<<<<< HEAD
 #include "EventCheckers.h"
 // Include every state machine
 
-=======
->>>>>>> 83b5678eb423f25f722abee4939afdc1b757a271
+
 
 /*----------------------------- Module Defines ----------------------------*/
 
