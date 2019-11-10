@@ -475,6 +475,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\KeyMapper.c</FilePath>
             </File>
+            <File>
+              <FileName>TOT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\TOT.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
