@@ -272,8 +272,6 @@ typedef enum
 	
   /* User-defined events start here */
   ES_NEW_KEY,               /* signals a new key received from terminal */
-	TestEvent1,
-	TestEvent2,
 	// TOT
 	GAME_COMPLETED,
 	TOT_DETECTED,
