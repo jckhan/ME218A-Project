@@ -480,6 +480,16 @@
               <FileType>1</FileType>
               <FilePath>.\Source\TOT.c</FilePath>
             </File>
+            <File>
+              <FileName>PWM16Tiva.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\PWM16Tiva.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ADMulti.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -594,6 +604,16 @@
               <FileName>ES_EventCheckWrapper.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_EventCheckWrapper.h</FilePath>
+            </File>
+            <File>
+              <FileName>PWM16Tiva.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\PWM16Tiva.h</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ADMulti.h</FilePath>
             </File>
           </Files>
         </Group>
