@@ -23,9 +23,12 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "KeyMapper.h"
+<<<<<<< HEAD
 #include "EventCheckers.h"
 // Include every state machine
 
+=======
+>>>>>>> 83b5678eb423f25f722abee4939afdc1b757a271
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -63,11 +66,15 @@ bool InitKeyMapper(uint8_t Priority)
 
   MyPriority = Priority;
   /********************************************
+<<<<<<< HEAD
 	
 	
    in here you write your initialization code
 	
 	
+=======
+   in here you write your initialization code
+>>>>>>> 83b5678eb423f25f722abee4939afdc1b757a271
    *******************************************/
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
@@ -124,6 +131,7 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+<<<<<<< HEAD
   /********************************************/
 	
 	
@@ -176,6 +184,11 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 	
 	
    /*******************************************/
+=======
+  /********************************************
+   in here you write your service code
+   *******************************************/
+>>>>>>> 83b5678eb423f25f722abee4939afdc1b757a271
   return ReturnEvent;
 }
 
