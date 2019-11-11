@@ -490,6 +490,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\PWM16Tiva.c</FilePath>
             </File>
+            <File>
+              <FileName>Servo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Servo.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

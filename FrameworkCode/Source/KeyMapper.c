@@ -25,6 +25,7 @@
 #include "KeyMapper.h"
 #include "EventCheckers.h"
 #include "TOT.h"
+#include "Servo.h"
 // Include every state machine
 
 
@@ -269,8 +270,22 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 			case '1':
 			{
 				Event2Post.EventType = ES_TIMEOUT;
-				Event2Post.EventParam = 1;
+				Event2Post.EventParam = 0;
 				PostTOT(Event2Post);
+				break;
+			}
+			case '2':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 1;
+				PostServo(Event2Post);
+				break;
+			}
+			case '3':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 2;
+				PostServo(Event2Post);
 				break;
 			}
 			

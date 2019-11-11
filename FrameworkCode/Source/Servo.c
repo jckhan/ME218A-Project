@@ -25,7 +25,7 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "TOT.h"
+#include "Servo.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -37,7 +37,7 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static TOTState_t CurrentState;
+static ServoState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,16 +61,16 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitTOT(uint8_t Priority)
+bool InitServo(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	TOTInitialize();
+	ServoInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = NoTOT;
+  CurrentState = ServoStandby;
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -100,7 +100,7 @@ bool InitTOT(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostTOT(ES_Event_t ThisEvent)
+bool PostServo(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -122,79 +122,68 @@ bool PostTOT(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunTOT(ES_Event_t ThisEvent)
+ES_Event_t RunServo(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case NoTOT:
+		case ServoStandby:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = NoTOT;
+        CurrentState = ServoStandby;
 				break;
       }
 			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in NoTOT\n\r");
+				printf("TOT_DETECTED in ServoStandby\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = START_POTATO;
-				ES_PostAll(Event2Post);
+				// Init short timer 2s
+				// Init long timer 10s
+				// Start the servo motor
 				
-				//Start game timer (60s)
-				
-				CurrentState = YesTOT;
+				CurrentState = ServoRunning;
 			}
 			break;
 		}
 		
-		case YesTOT:
+		case ServoRunning:
 		{
 			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in YesTOT\n\r");
+				printf("TOT_REMOVED in ServoRunning\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
+				// Return servo to original position
 				
-				// Open trapdoor to release TOT
-				
-				CurrentState = NoTOT;
+				CurrentState = ServoStandby;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("TIMEOUT in YesTOT\n\r");
-				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
-				
-				// Open trapdoor to release TOT
-				
-				CurrentState = NoTOT;
-			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in YesTOT\n\r");
-				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
-				
-				// Open trapdoor to release TOT
-				
-				CurrentState = NoTOT;
+				if (ThisEvent.EventParam == 1) {
+					printf("TIMEOUT_SHORT in ServoRunning\n\r");
+					
+					// Increment servo
+					// Init short timer 2s
+					
+					CurrentState = ServoRunning;
+				}
+				else if (ThisEvent.EventParam == 2) {
+					printf("TIMEOUT_LONG in ServoRunning\n\r");
+					
+					ES_Event_t Event2Post;
+					Event2Post.EventType = GAME_COMPLETED;
+					ES_PostAll(Event2Post);
+					
+					// Return servo to original position
+					
+					CurrentState = ServoStandby;
+				}				
 			}
 			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in YesTOT\n\r");
+				printf("RESET in ServoRunning\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
+				// Return servo to original position
 				
-				// Open trapdoor to release TOT
-				
-				CurrentState = NoTOT;
+				CurrentState = ServoStandby;
 			}
 			break;
 		}
@@ -221,7 +210,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-TOTState_t QueryTOT(void)
+ServoState_t QueryServo(void)
 {
   return CurrentState;
 }
@@ -229,7 +218,7 @@ TOTState_t QueryTOT(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void TOTInitialize( void) {
+void ServoInitialize( void) {
 	// Initialize a data line as the input for the TOT IR
 	
 }
