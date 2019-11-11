@@ -139,9 +139,12 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 			else if (ThisEvent.EventType == TOT_DETECTED) {
 				printf("TOT_DETECTED in ServoStandby\n\r");
 				
-				// Init short timer 2s
-				// Init long timer 10s
+				// Init short timer 50ms
+				printf("Starting timer (50ms)...\n\r");
+				// Init long timer 60s
+				printf("Starting timer (60s)...\n\r");
 				// Start the servo motor
+				printf("Starting servo motor...\n\r");
 				
 				CurrentState = ServoRunning;
 			}
@@ -154,6 +157,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				printf("TOT_REMOVED in ServoRunning\n\r");
 				
 				// Return servo to original position
+				printf("Returning servo to original position...\n\r");
 				
 				CurrentState = ServoStandby;
 			}
@@ -162,7 +166,9 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 					printf("TIMEOUT_SHORT in ServoRunning\n\r");
 					
 					// Increment servo
-					// Init short timer 2s
+					printf("Incrementing servo...\n\r");
+					// Init short timer 50ms
+					printf("Starting timer (50ms)...\n\r");
 					
 					CurrentState = ServoRunning;
 				}
@@ -174,6 +180,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 					ES_PostAll(Event2Post);
 					
 					// Return servo to original position
+					printf("Returning servo to original position...\n\r");
 					
 					CurrentState = ServoStandby;
 				}				
@@ -182,6 +189,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				printf("RESET in ServoRunning\n\r");
 				
 				// Return servo to original position
+				printf("Returning servo to original position...\n\r");
 				
 				CurrentState = ServoStandby;
 			}
@@ -219,6 +227,7 @@ ServoState_t QueryServo(void)
  private functions
  ***************************************************************************/
 void ServoInitialize( void) {
-	// Initialize a data line as the input for the TOT IR
+	
+	// Initialize the output line for the servo
 	
 }

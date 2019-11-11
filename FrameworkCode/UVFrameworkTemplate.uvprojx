@@ -495,6 +495,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Servo.c</FilePath>
             </File>
+            <File>
+              <FileName>Motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Motor.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

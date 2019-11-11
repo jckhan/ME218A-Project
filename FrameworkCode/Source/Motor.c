@@ -25,7 +25,9 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "TOT.h"
+
+#include "Motor.h"
+#include "PWM16Tiva.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -37,7 +39,7 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static TOTState_t CurrentState;
+static MotorState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,16 +63,16 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitTOT(uint8_t Priority)
+bool InitMotor(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	TOTInitialize();
+	MotorInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = NoTOT;
+  CurrentState = MotorOff;
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -100,7 +102,7 @@ bool InitTOT(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostTOT(ES_Event_t ThisEvent)
+bool PostMotor(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -122,92 +124,66 @@ bool PostTOT(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunTOT(ES_Event_t ThisEvent)
+ES_Event_t RunMotor(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case NoTOT:
+		case MotorOff:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = NoTOT;
+        CurrentState = MotorOff;
 				break;
       }
-			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in NoTOT\n\r");
+			else if (ThisEvent.EventType == SPINNER_START) {
+				printf("SPINNER_START in MotorOff\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = START_POTATO;
-				ES_PostAll(Event2Post);
+				// Replace this with the queried state of Game_SM
+				GameState_t GameState = PingPong_NotCompleted; //  <== REPLACE THIS!!!
 				
-				printf("POTATO started...\n\r");
+				if (GameState == PingPong_NotCompleted) {
+					// Init PWM at 0
+					printf("Initializing PWM at 0...\n\r");
+					// Init timer 50ms
+					printf("Starting timer (50ms)...\n\r");
+				}
 				
-				// Game timer is started by the servo
-				
-				CurrentState = YesTOT;
+				CurrentState = MotorOn;
 			}
 			break;
 		}
 		
-		case YesTOT:
+		case MotorOn:
 		{
-			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in YesTOT\n\r");
+			if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in MotorOn\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
+				// Stop PWM
+				printf("Stopping PWM...\n\r");
 				
-				printf("POTATO ended...\n\r");
-				
-				// Open trapdoor to release TOT
-				ReleaseTOT();
-				
-				CurrentState = NoTOT;
+				CurrentState = MotorOff;
 			}
-			// Is this conflicting/redundant with the servo timer?
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("TIMEOUT in YesTOT\n\r");
+				printf("ES_TIMEOUT in MotorOn\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
+				GetInputSignal();
+				ConvertSignal();
 				
-				printf("POTATO ended...\n\r");
+				// Init timer 50ms
+				printf("Starting timer (50ms)...\n\r");
 				
-				// Open trapdoor to release TOT
-				ReleaseTOT();
-				
-				CurrentState = NoTOT;
+				CurrentState = MotorOn;
 			}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in YesTOT\n\r");
+				printf("GAME_COMPLETED in MotorOn\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
+				// Stop PWM
+				printf("Stopping PWM...\n\r");
 				
-				printf("POTATO ended...\n\r");
-				
-				// Open trapdoor to release TOT
-				ReleaseTOT();
-				
-				CurrentState = NoTOT;
-			}
-			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in YesTOT\n\r");
-				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
-				
-				// Open trapdoor to release TOT
-				ReleaseTOT();
-				
-				CurrentState = NoTOT;
+				CurrentState = MotorOff;
 			}
 			break;
 		}
@@ -234,7 +210,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-TOTState_t QueryTOT(void)
+MotorState_t QueryMotor(void)
 {
   return CurrentState;
 }
@@ -242,13 +218,24 @@ TOTState_t QueryTOT(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void TOTInitialize( void) {
-	// Initialize a data line as the input for the TOT IR
-	// Initialize the control line for the trapdoor servo
+void MotorInitialize( void) {
+	
+	// Initialize the analog input line
+	
+	// Initialize the output line for the motor
+	
 }
 
-void ReleaseTOT( void) {
-	// Actuate the trapdoor servo to release the TOT
-	printf("Opening trapdoor to release TOT...\n\r");
-	// Return trapdoor to its default position
+void GetInputSignal( void) {
+	
+	printf("Getting the input signal...\n\r");
+	// Read the current analog input
+	
+}
+
+void ConvertSignal( void) {
+	
+	printf("Converting the analog signal...\n\r");
+	// Convert the analog signal into a digital output signal to the motor
+	
 }
