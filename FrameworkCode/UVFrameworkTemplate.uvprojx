@@ -500,6 +500,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Motor.c</FilePath>
             </File>
+            <File>
+              <FileName>Spinner.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Spinner.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
