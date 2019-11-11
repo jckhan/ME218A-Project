@@ -67,7 +67,7 @@ bool InitTOT(uint8_t Priority)
 
   MyPriority = Priority;
   // put us into the Initial PseudoState
-  CurrentState = InitPState;
+  CurrentState = NoTOT;
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -126,22 +126,17 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 
   switch (CurrentState)
   {
-    case InitPState:        // If current state is initial Psedudo State
-    {
-      if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
-      {
-        // this is where you would put any actions associated with the
-        // transition from the initial pseudo-state into the actual
-        // initial state
-
-        // now put the machine into the actual initial state
-        CurrentState = NoTOT;
-      }
-			break;
-    }
-		
 		case NoTOT:
 		{
+			
+			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
+      {
+				
+        TOTInitialize();
+        CurrentState = NoTOT;
+				break;
+      }
+			
 			if (ThisEvent.EventType == TestEvent1) {
 				printf("Event recevied in NoTOT\n\r");
 				CurrentState = YesTOT;
@@ -190,4 +185,7 @@ TOTState_t QueryTemplateFSM(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-
+void TOTInitialize( void) {
+	
+	
+}

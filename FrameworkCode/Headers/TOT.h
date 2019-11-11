@@ -29,5 +29,7 @@ bool PostTOT(ES_Event_t ThisEvent);
 ES_Event_t RunTOT(ES_Event_t ThisEvent);
 TOTState_t QueryTOT(void);
 
+void TOTInitialize( void);
+
 #endif 
 
