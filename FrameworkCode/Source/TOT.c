@@ -137,6 +137,13 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
       }
 			else if (ThisEvent.EventType == TOT_DETECTED) {
 				printf("TOT_DETECTED in NoTOT\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = START_POTATO;
+				ES_PostAll(Event2Post);
+				
+				//Start game timer (60s)
+				
 				CurrentState = YesTOT;
 			}
 			break;
@@ -146,13 +153,51 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == TOT_REMOVED) {
 				printf("TOT_REMOVED in YesTOT\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = END_POTATO;
+				ES_PostAll(Event2Post);
+				
+				// Open trapdoor to release TOT
+				
+				CurrentState = NoTOT;
+			}
+			else if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("TIMEOUT in YesTOT\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = END_POTATO;
+				ES_PostAll(Event2Post);
+				
+				// Open trapdoor to release TOT
+				
+				CurrentState = NoTOT;
+			}
+			else if (ThisEvent.EventType == GAME_COMPLETED) {
+				printf("GAME_COMPLETED in YesTOT\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = END_POTATO;
+				ES_PostAll(Event2Post);
+				
+				// Open trapdoor to release TOT
+				
+				CurrentState = NoTOT;
+			}
+			else if (ThisEvent.EventType == RESET) {
+				printf("RESET in YesTOT\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = END_POTATO;
+				ES_PostAll(Event2Post);
+				
+				// Open trapdoor to release TOT
+				
 				CurrentState = NoTOT;
 			}
 			break;
 		}
-
-    // repeat state pattern as required for other states
-    default:
+		default:
       ;
   }                                   // end switch on Current State
   return ReturnEvent;
@@ -175,7 +220,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-TOTState_t QueryTemplateFSM(void)
+TOTState_t QueryTOT(void)
 {
   return CurrentState;
 }
@@ -184,6 +229,6 @@ TOTState_t QueryTemplateFSM(void)
  private functions
  ***************************************************************************/
 void TOTInitialize( void) {
-	
+	// Initialize a data line as the input for the TOT IR
 	
 }

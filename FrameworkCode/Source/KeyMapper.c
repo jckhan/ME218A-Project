@@ -24,6 +24,7 @@
 #include "ES_Framework.h"
 #include "KeyMapper.h"
 #include "EventCheckers.h"
+#include "TOT.h"
 // Include every state machine
 
 
@@ -138,43 +139,141 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 		
 		switch(newKey)
 		{
-			case '1':
+			case 'C':
 			{
-				Event2Post.EventType = TestEvent1;
+				Event2Post.EventType = GAME_COMPLETED;
 				Event2Post.EventParam = 1;
 				ES_PostAll(Event2Post);
 				break;
 			}
-			case '2':
+			case 'T':
 			{
-				Event2Post.EventType = TestEvent2;
+				Event2Post.EventType = TOT_DETECTED;
 				Event2Post.EventParam = 1;
 				ES_PostAll(Event2Post);
 				break;
 			}
-			/*
+			
+			case 't':
+			{
+				Event2Post.EventType = TOT_REMOVED;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'r':
+			{
+				Event2Post.EventType = RESET;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'S':
+			{
+				Event2Post.EventType = SPINNER_START;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 's':
+			{
+				Event2Post.EventType = SPINNER_STOP;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'z':
+			{
+				Event2Post.EventType = START_POTATO;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'x':
+			{
+				Event2Post.EventType = END_POTATO;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'u':
+			{
+				Event2Post.EventType = PULSE_DETECTED;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
 			case 'c':
 			{
-				Event2Post.EventType = TestEvent1;
+				Event2Post.EventType = PP_COMPLETED;
 				Event2Post.EventParam = 1;
 				ES_PostAll(Event2Post);
 				break;
 			}
-			case 'd':
+			case 'B':
 			{
-				Event2Post.EventType = TestEvent1;
+				Event2Post.EventType = BLOWING_START;
 				Event2Post.EventParam = 1;
 				ES_PostAll(Event2Post);
 				break;
 			}
-			case 'e':
+			case 'b':
 			{
-				Event2Post.EventType = TestEvent1;
+				Event2Post.EventType = BLOWING_STOP;
 				Event2Post.EventParam = 1;
 				ES_PostAll(Event2Post);
 				break;
 			}
-			*/
+			case 'm':
+			{
+				Event2Post.EventType = POS_MIDDLE;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'n':
+			{
+				Event2Post.EventType = POS_TOP;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'a':
+			{
+				Event2Post.EventType = FALLING_MIDDLE;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'A':
+			{
+				Event2Post.EventType = FALLING_TOP;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'i':
+			{
+				Event2Post.EventType = RISING_MIDDLE;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case 'I':
+			{
+				Event2Post.EventType = RISING_TOP;
+				Event2Post.EventParam = 1;
+				ES_PostAll(Event2Post);
+				break;
+			}
+			case '1':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 1;
+				PostTOT(Event2Post);
+				break;
+			}
+			
 		}
 		//printf("%c", newKey);
 	}

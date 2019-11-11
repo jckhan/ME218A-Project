@@ -289,7 +289,7 @@ typedef enum
 	// Blower
 	PP_COMPLETED,
 	BLOWING_START,
-	BLOWER_STOP,
+	BLOWING_STOP,
 	// Game
 	POS_MIDDLE,
 	POS_TOP,
