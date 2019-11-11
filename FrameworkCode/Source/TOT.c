@@ -142,8 +142,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 		
 		case NoTOT:
 		{
-			if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in NoTOT\n\r");
+			if (ThisEvent.EventType == TestEvent1) {
+				printf("Event recevied in NoTOT\n\r");
 				CurrentState = YesTOT;
 			}
 			break;
@@ -151,8 +151,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 		
 		case YesTOT:
 		{
-			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in YesTOT\n\r");
+			if (ThisEvent.EventType == TestEvent2) {
+				printf("Event recevied in YesTOT\n\r");
 				CurrentState = NoTOT;
 			}
 			break;

@@ -258,47 +258,10 @@ typedef enum
   ES_INIT,                  /* used to transition from initial pseudo-state */
   ES_TIMEOUT,               /* signals that the timer has expired */
   ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
-	/* Note: the following are different timeout events received 
-	   by different modules
-	- TIMEOUT (TOT)
-	- TIMEOUT (Servo)
-	- TIMEOUT (Motor)
-	- TIMEOUT (Spinner)
-	- TIMEOUT_SHORT (Blower)
-	- TIMEOUT_LONG (Blower)
-	- TIMEOUT (Game)
-	- TIMEOUT (PingPong)
-	*/
-	
   /* User-defined events start here */
   ES_NEW_KEY,               /* signals a new key received from terminal */
-	// TOT
-	GAME_COMPLETED,
-	TOT_DETECTED,
-	TOT_REMOVED,
-	RESET,
-	// Motor
-	SPINNER_START,
-	SPINNER_STOP,
-	// Spinner
-	START_POTATO,
-	END_POTATO,
-	PULSE_DETECTED,
-	// Blower
-	PP_COMPLETED,
-	BLOWING_START,
-	BLOWER_STOP,
-	// Game
-	POS_MIDDLE,
-	POS_TOP,
-	// PingPong
-	FALLING_MIDDLE,
-	FALLING_TOP,
-	RISING_MIDDLE,
-	RISING_TOP
-	
-	/* Note: If you remove or rename any of these events, do the same for the 
-	   cases in KeyMapper.c */
+	TestEvent1,
+	TestEvent2
 }ES_EventType_t;
 
 /****************************************************************************/

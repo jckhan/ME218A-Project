@@ -138,16 +138,16 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 		
 		switch(newKey)
 		{
-			case 'T':
+			case '1':
 			{
-				Event2Post.EventType = TOT_DETECTED;
+				Event2Post.EventType = TestEvent1;
 				Event2Post.EventParam = 1;
 				ES_PostAll(Event2Post);
 				break;
 			}
-			case 't':
+			case '2':
 			{
-				Event2Post.EventType = TOT_REMOVED;
+				Event2Post.EventType = TestEvent2;
 				Event2Post.EventParam = 1;
 				ES_PostAll(Event2Post);
 				break;
