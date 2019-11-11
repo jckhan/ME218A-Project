@@ -25,9 +25,6 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-
-#include "Motor.h"
-#include "PWM16Tiva.h"
 #include "Game.h"
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -40,7 +37,7 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static MotorState_t CurrentState;
+static GameState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -64,16 +61,16 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitMotor(uint8_t Priority)
+bool InitGame(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	MotorInitialize();
+	GameInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = MotorOff;
+  CurrentState = GameStandby;
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -103,7 +100,7 @@ bool InitMotor(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostMotor(ES_Event_t ThisEvent)
+bool PostGame(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -125,66 +122,121 @@ bool PostMotor(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunMotor(ES_Event_t ThisEvent)
+ES_Event_t RunGame(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case MotorOff:
+		case GameStandby:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = MotorOff;
+        CurrentState = GameStandby;
 				break;
       }
 			else if (ThisEvent.EventType == SPINNER_START) {
-				printf("SPINNER_START in MotorOff\n\r");
+				printf("SPINNER_START in GameStandby\n\r");
 				
-				// Replace this with the queried state of Game_SM
-				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
+				// Turn on middle LEDs
+				LEDMiddle(1);
 				
-				if (GameState != PingPong_Completed) {
-					// Init PWM at 0
-					printf("Initializing PWM at 0...\n\r");
-					// Init timer 50ms
-					printf("Starting timer (50ms)...\n\r");
-				}
-				
-				CurrentState = MotorOn;
+				CurrentState = Level1;
 			}
 			break;
 		}
 		
-		case MotorOn:
+		case Level1:
 		{
-			if (ThisEvent.EventType == SPINNER_STOP) {
-				printf("SPINNER_STOP in MotorOn\n\r");
+			if (ThisEvent.EventType == POS_MIDDLE) {
+				printf("POS_MIDDLE in Level1\n\r");
 				
-				// Stop PWM
-				printf("Stopping PWM...\n\r");
+				// Turn off middle LEDs
+				LEDMiddle(0);
+				// Turn on top LEDs
+				LEDTop(1);
 				
-				CurrentState = MotorOff;
+				CurrentState = Level2;
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in MotorOn\n\r");
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Level1\n\r");
 				
-				GetInputSignal();
-				ConvertSignal();
+				// Turn off all LEDs
+				LEDMiddle(0);
 				
-				// Init timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				
-				CurrentState = MotorOn;
+				CurrentState = GameStandby;
 			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in MotorOn\n\r");
+			break;
+		}
+		case Level2:
+		{
+			if (ThisEvent.EventType == POS_TOP) {
+				printf("POS_TOP in Level2\n\r");
 				
-				// Stop PWM
-				printf("Stopping PWM...\n\r");
+				// Turn off top LEDs
+				LEDTop(0);
+				// Turn on middle LEDs
+				LEDMiddle(1);
 				
-				CurrentState = MotorOff;
+				CurrentState = Level3;
+			}
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Level2\n\r");
+				
+				// Turn off all LEDs
+				LEDTop(0);
+				
+				CurrentState = GameStandby;
+			}
+			break;
+		}
+		case Level3:
+		{
+			if (ThisEvent.EventType == POS_MIDDLE) {
+				printf("POS_MIDDLE in Level3\n\r");
+				
+				// Turn off middle LEDs
+				LEDMiddle(0);
+				// Turn on success LEDs
+				LEDSuccess(1);
+				
+				// Init 3s timer
+				printf("Starting timer (3s)...\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = PP_COMPLETED;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = PingPong_Completed;
+			}
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Level3\n\r");
+				
+				// Turn off all LEDs
+				LEDMiddle(0);
+				
+				CurrentState = GameStandby;
+			}
+			break;
+		}
+		case PingPong_Completed:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in PingPong_Completed\n\r");
+				
+				// Turn off success LEDs
+				LEDSuccess(0);
+				
+				CurrentState = PingPong_Completed;
+			}
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in PingPong_Completed\n\r");
+				
+				// Turn off success LEDs
+				LEDSuccess(0);
+				
+				CurrentState = GameStandby;
 			}
 			break;
 		}
@@ -211,7 +263,7 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-MotorState_t QueryMotor(void)
+GameState_t QueryGame(void)
 {
   return CurrentState;
 }
@@ -219,24 +271,40 @@ MotorState_t QueryMotor(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void MotorInitialize( void) {
-	
-	// Initialize the analog input line
-	
-	// Initialize the output line for the motor
-	
+void GameInitialize( void) {
+	// Initialize the output data line to power on the middle, top, and success LEDs
 }
 
-void GetInputSignal( void) {
-	
-	printf("Getting the input signal...\n\r");
-	// Read the current analog input
-	
+void LEDMiddle(uint8_t Setting) {
+	if (Setting == 0) {
+		// Turn off middle LEDs
+		printf("Turning off middle LEDs...\n\r");
+	}
+	else if (Setting == 1){
+		// Turn on middle LEDs
+		printf("Turning on middle LEDs...\n\r");
+	}
 }
 
-void ConvertSignal( void) {
-	
-	printf("Converting the analog signal...\n\r");
-	// Convert the analog signal into a digital output signal to the motor
-	
+void LEDTop(uint8_t Setting) {
+	if (Setting == 0) {
+		// Turn off top LEDs
+		printf("Turning off top LEDs...\n\r");
+	}
+	else if (Setting == 1){
+		// Turn on top LEDs
+		printf("Turning on top LEDs...\n\r");
+	}
 }
+
+void LEDSuccess(uint8_t Setting) {
+	if (Setting == 0) {
+		// Turn off success LEDs
+		printf("Turning off success LEDs...\n\r");
+	}
+	else if (Setting == 1){
+		// Turn on success LEDs
+		printf("Turning on success LEDs...\n\r");
+	}
+}
+		

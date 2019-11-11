@@ -505,6 +505,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Spinner.c</FilePath>
             </File>
+            <File>
+              <FileName>Game.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Game.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

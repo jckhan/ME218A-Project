@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef Motor_H
-#define Motor_H
+#ifndef Game_H
+#define Game_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -17,27 +17,24 @@
 // State definitions for use with the query function
 typedef enum
 {
-  MotorOff, 
-	MotorOn,
-}MotorState_t;
-
-/*typedef enum
-{
-	PingPong_NotCompleted,
-  PingPong_Completed
-}GameState_t;*/
+  GameStandby,
+	Level1,
+	Level2,
+	Level3,
+	PingPong_Completed
+}GameState_t;
 
 // Public Function Prototypes
 
-bool InitMotor(uint8_t Priority);
-bool PostMotor(ES_Event_t ThisEvent);
-ES_Event_t RunMotor(ES_Event_t ThisEvent);
-MotorState_t QueryMotor(void);
+bool InitGame(uint8_t Priority);
+bool PostGame(ES_Event_t ThisEvent);
+ES_Event_t RunGame(ES_Event_t ThisEvent);
+GameState_t QueryGame(void);
 
-// Change the parameters for these prototypes are you write them
-void MotorInitialize( void);
-void GetInputSignal( void);
-void ConvertSignal( void);
+void GameInitialize( void);
+void LEDMiddle(uint8_t Setting);
+void LEDTop(uint8_t Setting);
+void LEDSuccess(uint8_t Setting);
 
 #endif 
 
