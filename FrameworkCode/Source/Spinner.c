@@ -148,11 +148,20 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == PULSE_DETECTED) {
 				printf("PULSE_DETECTED in Waiting4Pulse\n\r");
-
+				
+				// Init 500ms timer
+				printf("Starting timer (500ms)...\n\r");
+				
+				CurrentState = MaybeSpinning;
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
 				printf("END_POTATO in Waiting4Pulse\n\r");
-
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Waiting4TOT;
 			}
 			break;
 		}
@@ -160,15 +169,29 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == PULSE_DETECTED) {
 				printf("PULSE_DETECTED in MaybeSpinning\n\r");
-
+				
+				// Init 1s timer
+				printf("Starting timer (1s)...\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_START;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Spinning;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in MaybeSpinning\n\r");
-
+				
+				CurrentState = Waiting4Pulse;
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
 				printf("END_POTATO in MaybeSpinning\n\r");
-
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Waiting4TOT;
 			}
 			break;
 		}
@@ -180,11 +203,21 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in Spinning\n\r");
-
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Waiting4Pulse;
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
 				printf("END_POTATO in Spinning\n\r");
-
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Waiting4TOT;
 			}
 			break;
 		}

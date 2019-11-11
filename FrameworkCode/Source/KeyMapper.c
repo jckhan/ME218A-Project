@@ -24,11 +24,12 @@
 #include "ES_Framework.h"
 #include "KeyMapper.h"
 #include "EventCheckers.h"
+
+// Include every state machine
 #include "TOT.h"
 #include "Servo.h"
 #include "Motor.h"
-// Include every state machine
-
+#include "Spinner.h"
 
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -138,6 +139,8 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 	if (ThisEvent.EventType == ES_NEW_KEY) {
 		char newKey = ThisEvent.EventParam;
 		ES_Event_t Event2Post;
+		
+		printf("\n\r");
 		
 		switch(newKey)
 		{
@@ -294,6 +297,13 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 				Event2Post.EventType = ES_TIMEOUT;
 				Event2Post.EventParam = 0;
 				PostMotor(Event2Post);
+				break;
+			}
+			case '5':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostSpinner(Event2Post);
 				break;
 			}
 			
