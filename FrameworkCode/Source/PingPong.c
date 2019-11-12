@@ -25,10 +25,23 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-
-#include "Motor.h"
-#include "PWM16Tiva.h"
+#include "PingPong.h"
 #include "Game.h"
+
+#include "BITDEFS.H"
+
+// the headers to access the GPIO subsystem
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_sysctl.h"
+
+// the headers to access the TivaWare Library
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -40,7 +53,9 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static MotorState_t CurrentState;
+static PingPongState_t CurrentState;
+static uint8_t LastMiddleState;
+static uint8_t LastTopState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -64,16 +79,20 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitMotor(uint8_t Priority)
+bool InitPingPong(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	MotorInitialize();
+	PingPongInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = MotorOff;
+  CurrentState = PPStandby;
+	
+	LastMiddleState = GetIRMiddle();
+	LastTopState = GetIRTop();
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -103,7 +122,7 @@ bool InitMotor(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostMotor(ES_Event_t ThisEvent)
+bool PostPingPong(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -125,70 +144,100 @@ bool PostMotor(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunMotor(ES_Event_t ThisEvent)
+ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case MotorOff:
+		case PPStandby:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = MotorOff;
+        CurrentState = PPStandby;
 				break;
       }
 			else if (ThisEvent.EventType == SPINNER_START) {
-				printf("SPINNER_START in MotorOff\n\r");
+				printf("SPINNER_START in PPStandby\n\r");
 				
-				// Replace this with the queried state of Game_SM
-				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
-				
-				if (GameState != PingPong_Completed) {
-					// Init PWM at 0
-					printf("Initializing PWM at 0...\n\r");
-					// Init timer 50ms
-					printf("Starting timer (50ms)...\n\r");
-					
-					CurrentState = MotorOn;
-				}
+				CurrentState = Neutral;
 			}
 			break;
 		}
 		
-		case MotorOn:
+		case Neutral:
 		{
 			if (ThisEvent.EventType == SPINNER_STOP) {
-				printf("SPINNER_STOP in MotorOn\n\r");
+				printf("SPINNER_STOP in Neutral\n\r");
 				
-				// Stop PWM
-				printf("Stopping PWM...\n\r");
-				
-				CurrentState = MotorOff;
+				CurrentState = PPStandby;
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in MotorOn\n\r");
+			else if (ThisEvent.EventType == FALLING_MIDDLE) {
+				printf("FALLING_MIDDLE in Neutral\n\r");
 				
-				GetInputSignal();
-				ConvertSignal();
+				// Init 3s timer
+				printf("Starting timer (3s)...\n\r");
 				
-				// Init timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				
-				CurrentState = MotorOn;
+				CurrentState = Middle;
 			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in MotorOn\n\r");
+			else if (ThisEvent.EventType == FALLING_TOP) {
+				printf("FALLING_TOP in Neutral\n\r");
 				
-				// Stop PWM
-				printf("Stopping PWM...\n\r");
+				// Init 3s timer
+				printf("Starting timer (3s)...\n\r");
 				
-				CurrentState = MotorOff;
+				CurrentState = Top;
 			}
 			break;
 		}
-		default:
+		case Middle:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Middle\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = POS_MIDDLE;
+				PostGame(Event2Post);
+				
+				CurrentState = Middle;
+			}
+			else if (ThisEvent.EventType == RISING_MIDDLE) {
+				printf("RISING_MIDDLE in Middle\n\r");
+				
+				CurrentState = Neutral;
+			}
+			else if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in Middle\n\r");
+				
+				CurrentState = PPStandby;
+			}
+			break;
+		}
+		case Top:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Top\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = POS_TOP;
+				PostGame(Event2Post);
+				
+				CurrentState = Top;
+			}
+			else if (ThisEvent.EventType == RISING_TOP) {
+				printf("RISING_Top in Top\n\r");
+				
+				CurrentState = Neutral;
+			}
+			else if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in Top\n\r");
+				
+				CurrentState = PPStandby;
+			}
+			break;
+		}
+				default:
       ;
   }                                   // end switch on Current State
   return ReturnEvent;
@@ -211,7 +260,7 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-MotorState_t QueryMotor(void)
+PingPongState_t QueryPingPong(void)
 {
   return CurrentState;
 }
@@ -219,24 +268,75 @@ MotorState_t QueryMotor(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void MotorInitialize( void) {
+void PingPongInitialize( void) {
+	// Initialize the input lines to check for the middle and top IR LEDs
+}
+
+static uint8_t GetIRMiddle( void) {
+  uint8_t InputState = 1;
+	/*
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT7HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+	*/
+	return InputState;
+}
+
+static uint8_t GetIRTop( void) {
+  uint8_t InputState = 1;
+
+	return InputState;
+}
+
+bool CheckPingPongEvents( void) {
 	
-	// Initialize the analog input line
+	bool ReturnVal = false;
+	// Sample the middle IR line
+	uint8_t CurrentMiddleState = GetIRMiddle();
+	// Sample the top IR line
+	uint8_t CurrentTopState = GetIRTop();
 	
-	// Initialize the output line for the motor
+	if (CurrentMiddleState != LastMiddleState) {
+      if (CurrentMiddleState) {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = RISING_MIDDLE;
+        PostPingPong(ThisEvent);
+      }
+      else {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = FALLING_MIDDLE;
+        PostPingPong(ThisEvent);
+      }
+
+      ReturnVal = true;
+  }
+	
+	if (CurrentTopState != LastTopState) {
+      if (CurrentTopState) {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = RISING_TOP;
+        PostPingPong(ThisEvent);
+      }
+      else {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = FALLING_TOP;
+        PostPingPong(ThisEvent);
+      }
+
+      ReturnVal = true;
+  }
+	
+  LastMiddleState = CurrentMiddleState;
+	LastTopState = CurrentTopState;
+  return ReturnVal;
 	
 }
 
-void GetInputSignal( void) {
-	
-	printf("Getting the input signal...\n\r");
-	// Read the current analog input
-	
-}
 
-void ConvertSignal( void) {
-	
-	printf("Converting the analog signal...\n\r");
-	// Convert the analog signal into a digital output signal to the motor
-	
-}
+
+
+
+		

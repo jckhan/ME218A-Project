@@ -193,6 +193,14 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				
 				CurrentState = ServoStandby;
 			}
+			else if (ThisEvent.EventType == GAME_COMPLETED) {
+				printf("GAME_COMPLETED in ServoRunning\n\r");
+				
+				// Return servo to original position
+				printf("Returning servo to original position...\n\r");
+				
+				CurrentState = ServoStandby;
+			}
 			break;
 		}
 		default:

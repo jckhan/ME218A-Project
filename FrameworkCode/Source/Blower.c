@@ -25,10 +25,23 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-
-#include "Motor.h"
-#include "PWM16Tiva.h"
+#include "Blower.h"
 #include "Game.h"
+
+#include "BITDEFS.H"
+
+// the headers to access the GPIO subsystem
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_sysctl.h"
+
+// the headers to access the TivaWare Library
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -40,7 +53,8 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static MotorState_t CurrentState;
+static BlowerState_t CurrentState;
+static uint8_t LastBlowerState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -64,16 +78,19 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitMotor(uint8_t Priority)
+bool InitBlower(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	MotorInitialize();
+	BlowerInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = MotorOff;
+  CurrentState = BlowerStandby;
+	
+	LastBlowerState = GetCurrentState();
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -103,7 +120,7 @@ bool InitMotor(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostMotor(ES_Event_t ThisEvent)
+bool PostBlower(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -125,66 +142,89 @@ bool PostMotor(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunMotor(ES_Event_t ThisEvent)
+ES_Event_t RunBlower(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case MotorOff:
+		case BlowerStandby:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = MotorOff;
+        CurrentState = BlowerStandby;
 				break;
       }
+			else if (ThisEvent.EventType == PP_COMPLETED) {
+				printf("PP_COMPLETED in BlowerStandby\n\r");
+				
+				CurrentState = NotBlowing;
+			}
 			else if (ThisEvent.EventType == SPINNER_START) {
-				printf("SPINNER_START in MotorOff\n\r");
-				
-				// Replace this with the queried state of Game_SM
-				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
-				
-				if (GameState != PingPong_Completed) {
-					// Init PWM at 0
-					printf("Initializing PWM at 0...\n\r");
-					// Init timer 50ms
-					printf("Starting timer (50ms)...\n\r");
-					
-					CurrentState = MotorOn;
-				}
+				GameState_t GameState = QueryGame();
+				if (GameState == PingPong_Completed) {
+					printf("SPINNER_START in BlowerStandby\n\r");
+					CurrentState = NotBlowing;
+				}				
 			}
 			break;
 		}
 		
-		case MotorOn:
+		case NotBlowing:
 		{
 			if (ThisEvent.EventType == SPINNER_STOP) {
-				printf("SPINNER_STOP in MotorOn\n\r");
+				printf("SPINNER_STOP in NotBlowing\n\r");
 				
-				// Stop PWM
-				printf("Stopping PWM...\n\r");
-				
-				CurrentState = MotorOff;
+				CurrentState = BlowerStandby;
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in MotorOn\n\r");
+			else if (ThisEvent.EventType == BLOWING_START) {
+				printf("BLOWER_START in NotBlowing\n\r");
 				
-				GetInputSignal();
-				ConvertSignal();
+				// Init 8s timer
+				printf("Starting timer (8s)...\n\r");
 				
-				// Init timer 50ms
-				printf("Starting timer (50ms)...\n\r");
+				// Init 2s timer
+				printf("Starting timer (2s)...\n\r");
 				
-				CurrentState = MotorOn;
+				CurrentState = Blowing;
 			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in MotorOn\n\r");
+			break;
+		}
+		case Blowing:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Blowing\n\r");
+				if (ThisEvent.EventParam == 1) {
+					
+					// Increment LEDs
+					printf("Incrementing LEDs...\n\r");
+					
+					// Init 2s timer
+					printf("Starting timer (2s)...\n\r");
+					
+					CurrentState = Blowing;
+				} else if (ThisEvent.EventParam == 2) {
+					
+					ES_Event_t Event2Post;
+					Event2Post.EventType = GAME_COMPLETED;
+					ES_PostAll(Event2Post);
+					
+					CurrentState = BlowerStandby;
+				}
+			}
+			else if (ThisEvent.EventType == BLOWING_STOP) {
+				printf("BLOWING_STOP in Blowing\n\r");
 				
-				// Stop PWM
-				printf("Stopping PWM...\n\r");
+				// Turn off all LEDs
+				printf("Turning off all LEDs...\n\r");
 				
-				CurrentState = MotorOff;
+				CurrentState = NotBlowing;
+			}
+			else if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in Blowing\n\r");
+				
+				CurrentState = BlowerStandby;
 			}
 			break;
 		}
@@ -211,7 +251,7 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-MotorState_t QueryMotor(void)
+BlowerState_t QueryBlower(void)
 {
   return CurrentState;
 }
@@ -219,24 +259,51 @@ MotorState_t QueryMotor(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void MotorInitialize( void) {
+void BlowerInitialize( void) {
+	// Initialize the input line for the microphone
+}
+
+static uint8_t GetCurrentState( void) {
+  uint8_t InputState = 0;
+	/*
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT7HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+	*/
+	return InputState;
+}
+
+bool CheckBlowerEvents( void) {
 	
-	// Initialize the analog input line
+	bool ReturnVal = false;
+
+	uint8_t CurrentBlowerState = GetCurrentState();
 	
-	// Initialize the output line for the motor
+	if (CurrentBlowerState != LastBlowerState) {
+      if (CurrentBlowerState) {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = BLOWING_START;
+        PostBlower(ThisEvent);
+      }
+      else {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = BLOWING_STOP;
+        PostBlower(ThisEvent);
+      }
+
+      ReturnVal = true;
+  }
+	
+  LastBlowerState = CurrentBlowerState;
+  return ReturnVal;
 	
 }
 
-void GetInputSignal( void) {
-	
-	printf("Getting the input signal...\n\r");
-	// Read the current analog input
-	
-}
 
-void ConvertSignal( void) {
-	
-	printf("Converting the analog signal...\n\r");
-	// Convert the analog signal into a digital output signal to the motor
-	
-}
+
+
+
+		

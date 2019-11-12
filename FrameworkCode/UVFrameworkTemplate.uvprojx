@@ -515,11 +515,6 @@
               <FileType>1</FileType>
               <FilePath>.\Source\PingPong.c</FilePath>
             </File>
-            <File>
-              <FileName>Blower.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\Blower.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

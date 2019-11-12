@@ -21,11 +21,11 @@ typedef enum
 	MotorOn,
 }MotorState_t;
 
-typedef enum
+/*typedef enum
 {
 	PingPong_NotCompleted,
   PingPong_Completed
-}GameState_t;
+}GameState_t;*/
 
 // Public Function Prototypes
 

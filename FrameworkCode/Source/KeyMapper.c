@@ -30,6 +30,9 @@
 #include "Servo.h"
 #include "Motor.h"
 #include "Spinner.h"
+#include "Game.h"
+#include "PingPong.h"
+#include "Blower.h"
 
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -306,7 +309,34 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 				PostSpinner(Event2Post);
 				break;
 			}
-			
+			case '6':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 1;
+				PostBlower(Event2Post);
+				break;
+			}
+			case '7':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 2;
+				PostBlower(Event2Post);
+				break;
+			}
+			case '8':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostGame(Event2Post);
+				break;
+			}
+			case '9':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostPingPong(Event2Post);
+				break;
+			}
 		}
 		//printf("%c", newKey);
 	}
