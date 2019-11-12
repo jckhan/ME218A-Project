@@ -22,8 +22,8 @@
 
 #include "PWM16Tiva.h"
 
-#define TowerProLimLow 1250 //Lower Limit of pulse in ticks (1 tick = 0.8 microseconds)
-#define TowerProLimHigh 2500 //Upper Limit of pulse in ticks (1 tick = 0.8 microseconds)
+#define TowerProLimLow 1000 //Lower Limit of pulse in ticks (1 tick = 0.8 microseconds)
+#define TowerProLimHigh 3200 //Upper Limit of pulse in ticks (1 tick = 0.8 microseconds)
 #define clrScrn() printf("\x1b[2J")
 
 int main(void){
@@ -45,9 +45,9 @@ int main(void){
 	while(!kbhit()){
 	}
 	printf("keyboard hit \r\n");
-	uint16_t NewPW = 2450; //Set width of pulse in ticks (1 tick = 0.8 microseconds)
+	uint16_t NewPW = 3200; //Set width of pulse in ticks (1 tick = 0.8 microseconds)
 	uint8_t channel = 0;
-	uint16_t reqPeriod = 25000; //Set width of PWM Period in ticks
+	uint16_t reqPeriod = 20000; //Set width of PWM Period in ticks
 	uint8_t group = 0;
 	PWM_TIVA_SetPeriod( reqPeriod, group);
 	PWM_TIVA_SetPulseWidth( NewPW, channel);
