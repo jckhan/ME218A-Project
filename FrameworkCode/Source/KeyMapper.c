@@ -31,6 +31,7 @@
 #include "Motor.h"
 #include "Spinner.h"
 #include "Game.h"
+#include "PingPong.h"
 
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -328,7 +329,13 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 				PostGame(Event2Post);
 				break;
 			}
-			
+			case '9':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostPingPong(Event2Post);
+				break;
+			}
 		}
 		//printf("%c", newKey);
 	}

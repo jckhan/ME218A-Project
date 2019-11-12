@@ -38,6 +38,7 @@
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static TOTState_t CurrentState;
+static uint8_t LastTOTState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -71,6 +72,9 @@ bool InitTOT(uint8_t Priority)
 	
   // put us into the Initial PseudoState
   CurrentState = NoTOT;
+	
+	LastTOTState = GetTOTState();
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -251,4 +255,42 @@ void ReleaseTOT( void) {
 	// Actuate the trapdoor servo to release the TOT
 	printf("Opening trapdoor to release TOT...\n\r");
 	// Return trapdoor to its default position
+}
+
+uint8_t GetTOTState( void) {
+	uint8_t InputState = 1;
+	/*
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT7HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+	*/
+	return InputState;
+}
+
+bool CheckTOTEvents( void){
+  
+  bool ReturnVal = false;
+  uint8_t CurrentTOTState = GetTOTState();
+	
+  if (CurrentTOTState != LastTOTState) {
+      if (CurrentTOTState) {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = TOT_DETECTED;
+        PostTOT(ThisEvent);
+        ReturnVal = true;
+      }
+      else {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = TOT_REMOVED;
+        PostTOT(ThisEvent);
+        ReturnVal = true;
+      }
+
+      ReturnVal = true;
+  }
+  LastTOTState = CurrentTOTState;
+  return ReturnVal;
 }
