@@ -43,6 +43,8 @@
 #include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
+#define MAYBESPINNING_TIME 	500
+#define SPINNING_TIME				1000
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -170,6 +172,7 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 				
 				// Init 500ms timer
 				printf("Starting timer (500ms)...\n\r");
+				ES_Timer_InitTimer(5, MAYBESPINNING_TIME);
 				
 				CurrentState = MaybeSpinning;
 			}
@@ -191,6 +194,7 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 				
 				// Init 1s timer
 				printf("Starting timer (1s)...\n\r");
+				ES_Timer_InitTimer(5, SPINNING_TIME);
 				
 				ES_Event_t Event2Post;
 				Event2Post.EventType = SPINNER_START;
