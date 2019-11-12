@@ -31,6 +31,8 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent);
 SpinnerState_t QuerySpinner(void);
 
 void SpinnerInitialize( void);
+uint8_t GetSpinnerState( void);
+bool CheckSpinnerEvents( void);
 
 #endif 
 

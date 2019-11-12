@@ -38,6 +38,7 @@
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static SpinnerState_t CurrentState;
+static uint8_t LastSpinnerState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -71,6 +72,9 @@ bool InitSpinner(uint8_t Priority)
 	
   // put us into the Initial PseudoState
   CurrentState = Waiting4TOT;
+	
+	LastSpinnerState = GetSpinnerState();
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -253,6 +257,38 @@ SpinnerState_t QuerySpinner(void)
  private functions
  ***************************************************************************/
 void SpinnerInitialize( void) {
-	// Initialize a data line as the input for the TOT IR
-	// Initialize the control line for the trapdoor servo
+	// Initialize the input data line for the Hall Effect sensor
+}
+
+uint8_t GetSpinnerState( void) {
+	uint8_t InputState = 1;
+	/*
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT7HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+	*/
+	return InputState;
+}
+
+bool CheckSpinnerEvents( void) {
+	
+	bool ReturnVal = false;
+
+	uint8_t CurrentSpinnerState = GetSpinnerState();
+	
+	if (CurrentSpinnerState != LastSpinnerState) {
+			ES_Event_t ThisEvent;
+			ThisEvent.EventType = PULSE_DETECTED;
+			PostSpinner(ThisEvent);
+      
+      ReturnVal = true;
+  }
+	
+  LastSpinnerState = CurrentSpinnerState;
+
+  return ReturnVal;
+	
 }
