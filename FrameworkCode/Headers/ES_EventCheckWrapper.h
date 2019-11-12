@@ -22,5 +22,6 @@
 // contained event checking functions
 #include "TOT.h"
 #include "PingPong.h"
+#include "Blower.h"
 
 #endif  // ES_EventCheckWrapper_H
