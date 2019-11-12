@@ -27,6 +27,21 @@
 #include "ES_Framework.h"
 #include "Spinner.h"
 
+#include "BITDEFS.H"
+
+// the headers to access the GPIO subsystem
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_sysctl.h"
+
+// the headers to access the TivaWare Library
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/interrupt.h"
+
 /*----------------------------- Module Defines ----------------------------*/
 
 /*---------------------------- Module Functions ---------------------------*/
@@ -258,19 +273,26 @@ SpinnerState_t QuerySpinner(void)
  ***************************************************************************/
 void SpinnerInitialize( void) {
 	// Initialize the input data line for the Hall Effect sensor
+  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1;
+	while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1) {
+	}
+
+	HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= BIT7HI;
+
+	HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) &= BIT7LO;
+
+  printf("Spinner initialized\n\r");
 }
 
 uint8_t GetSpinnerState( void) {
-	uint8_t InputState = 1;
-	/*
+	uint8_t InputState;
+	
   InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
   if (InputState & BIT7HI) {
     return 1;
   } else {
     return 0;
   }
-	*/
-	return InputState;
 }
 
 bool CheckSpinnerEvents( void) {
@@ -278,8 +300,11 @@ bool CheckSpinnerEvents( void) {
 	bool ReturnVal = false;
 
 	uint8_t CurrentSpinnerState = GetSpinnerState();
+  //printf("Spinner state: %d\n\r", CurrentSpinnerState);
 	
 	if (CurrentSpinnerState != LastSpinnerState) {
+      //printf("Last spinner state: %d\n\r", LastSpinnerState);
+      //printf("Current spinner state: %d\n\r", CurrentSpinnerState);
 			ES_Event_t ThisEvent;
 			ThisEvent.EventType = PULSE_DETECTED;
 			PostSpinner(ThisEvent);
