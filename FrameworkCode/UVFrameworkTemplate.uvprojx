@@ -513,6 +513,11 @@
               <FileType>1</FileType>
               <FilePath>.\Servo_TEST.c</FilePath>
             </File>
+            <File>
+              <FileName>Servo_actuator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Servo_actuator.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1298,6 +1303,11 @@
               <FileName>Servo_TEST.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Servo_TEST.c</FilePath>
+            </File>
+            <File>
+              <FileName>Servo_actuator.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Servo_actuator.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -137,6 +137,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
+				
         CurrentState = NoTOT;
 				break;
       }
