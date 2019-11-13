@@ -509,9 +509,9 @@
               <FilePath>.\Source\PingPong.c</FilePath>
             </File>
             <File>
-              <FileName>Servo_TEST.c</FileName>
+              <FileName>Servo_actuator.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Servo_TEST.c</FilePath>
+              <FilePath>.\Servo_actuator.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1295,9 +1295,9 @@
               <FilePath>.\Source\PingPong.c</FilePath>
             </File>
             <File>
-              <FileName>Servo_TEST.c</FileName>
+              <FileName>Servo_actuator.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Servo_TEST.c</FilePath>
+              <FilePath>.\Servo_actuator.c</FilePath>
             </File>
           </Files>
         </Group>
