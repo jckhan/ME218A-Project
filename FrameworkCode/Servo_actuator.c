@@ -29,10 +29,13 @@ void ServoPinInit(uint8_t HowMany){ //Takes input how many PWM channels we need 
 } 
 
 void ServoPWM(uint16_t des_angle, uint8_t group, uint8_t channel){ //Desired angle is between 0 and 180 
+	printf("in servo PWM \r\n");
 	uint16_t reqPeriod = 20000;
 	uint16_t PulseWidth = 1000 + ((des_angle/180.0)*2200);
+	printf("%d \r\n",PulseWidth);
 	PWM_TIVA_SetPeriod( reqPeriod, group);
 	PWM_TIVA_SetPulseWidth( PulseWidth, channel);
+	printf("PWM Set \r\n");
 }
 int main(void){
 	SysCtlClockSet(SYSCTL_SYSDIV_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
