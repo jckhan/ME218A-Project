@@ -25,7 +25,24 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
+#include "TOT.h"
+#include "Servo_Actuator.h"
+#include "ES_Port.h"
+#include "termio.h"
+#include "EnablePA25_PB23_PD7_PF0.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_types.h"
+#include "inc/hw_pwm.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "inc/hw_types.h"
+#include "driverlib/sysctl.h"
+#include "inc/hw_sysctl.h"
+#include "PWM16Tiva.h"
 #include "Game.h"
+#include "ShiftRegisterWrite.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -272,7 +289,14 @@ GameState_t QueryGame(void)
  private functions
  ***************************************************************************/
 void GameInitialize( void) {
-	// Initialize the output data line to power on the middle, top, and success LEDs
+	//Initialize pins necessary for this module (LED Outputs, Mic Input)
+	HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI); //Digital Enable PA2 PA3 and PA4 for Serial Data, Shift Clock, and Register clock respectively OUPUTS
+	HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT2HI | BIT3HI | BIT4HI); //Set as output
+	HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT2LO & BIT3LO); //Set Data and shift clock low
+	HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);	//Set Reg clock high
+	
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT2HI); //Digital Enable PB2 for Mic Input
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT2LO); //set as input
 }
 
 void LEDMiddle(uint8_t Setting) {
