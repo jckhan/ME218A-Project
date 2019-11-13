@@ -272,10 +272,15 @@ TOTState_t QueryTOT(void)
  ***************************************************************************/
 void TOTInitialize( void) {
 	// Initialize a data line as the input for the TOT IR
-
+	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
+	while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
+	}		
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI); //Digital Enable pins 0 through 1
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (BIT0LO & BIT1LO); //Set pins 0 and 1 to inputs
+	
 	// Initialize the control line for the trapdoor servo
-		ServoPinInit(2); //Need 2 servos, channel 0 will be TOT system, channel 1 will be Timer System [BOTH ARE GROUP 0]
-		ServoPWM(20,0,0); //This is PB6
+	ServoPinInit(2); //Need 2 servos, channel 0 will be TOT system, channel 1 will be Timer System [BOTH ARE GROUP 0]
+	ServoPWM(20,0,0); //This is PB6
 }
 
 void ReleaseTOT( void) {

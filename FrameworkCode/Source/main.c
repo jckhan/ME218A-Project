@@ -49,12 +49,7 @@ int main(void)
       | SYSCTL_XTAL_16MHZ);
   TERMIO_Init();
   clrScrn();
-		HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
-		while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
-		}		
-		HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI | BIT2HI | BIT3HI | BIT4HI); //Digital Enable pints 0 through 4
-		HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (BIT0LO & BIT1LO); //Set pins 0 and 1 to inputs
-		HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT2HI | BIT3HI | BIT4HI); //Set pins 2,3 and 4 to outputs
+
   // When doing testing, it is useful to announce just which program
   // is running.
   puts("\rStarting Test Harness for \r");
