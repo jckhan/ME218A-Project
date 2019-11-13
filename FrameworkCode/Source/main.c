@@ -19,12 +19,22 @@
 #include "inc/hw_types.h"
 #include "inc/hw_memmap.h"
 #include "driverlib/sysctl.h"
+#include "inc/hw_sysctl.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "ES_Port.h"
 #include "termio.h"
 #include "EnablePA25_PB23_PD7_PF0.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_types.h"
+#include "inc/hw_pwm.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+
+#include "PWM16Tiva.h"
 
 #define clrScrn() printf("\x1b[2J")
 #define goHome() printf("\x1b[1,1H")

@@ -25,7 +25,10 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "Servo.h"
+
+#include "Motor.h"
+#include "PWM16Tiva.h"
+#include "Game.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -37,7 +40,7 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static ServoState_t CurrentState;
+static MotorState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,16 +64,16 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitServo(uint8_t Priority)
+bool InitMotor(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	ServoInitialize();
+	MotorInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = ServoStandby;
+  CurrentState = MotorOff;
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -100,7 +103,7 @@ bool InitServo(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostServo(ES_Event_t ThisEvent)
+bool PostMotor(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -122,84 +125,66 @@ bool PostServo(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunServo(ES_Event_t ThisEvent)
+ES_Event_t RunMotor(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case ServoStandby:
+		case MotorOff:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = ServoStandby;
+        CurrentState = MotorOff;
 				break;
       }
-			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in ServoStandby\n\r");
+			else if (ThisEvent.EventType == SPINNER_START) {
+				printf("SPINNER_START in MotorOff\n\r");
 				
-				// Init short timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				// Init long timer 60s
-				printf("Starting timer (60s)...\n\r");
-				// Start the servo motor
-				printf("Starting servo motor...\n\r");
+				// Replace this with the queried state of Game_SM
+				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
 				
-				CurrentState = ServoRunning;
+				if (GameState != PingPong_Completed) {
+					// Init PWM at 0
+					printf("Initializing PWM at 0...\n\r");
+					// Init timer 50ms
+					printf("Starting timer (50ms)...\n\r");
+					
+					CurrentState = MotorOn;
+				}
 			}
 			break;
 		}
 		
-		case ServoRunning:
+		case MotorOn:
 		{
-			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in ServoRunning\n\r");
+			if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in MotorOn\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Stop PWM
+				printf("Stopping PWM...\n\r");
 				
-				CurrentState = ServoStandby;
+				CurrentState = MotorOff;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				if (ThisEvent.EventParam == 1) {
-					printf("TIMEOUT_SHORT in ServoRunning\n\r");
-					
-					// Increment servo
-					printf("Incrementing servo...\n\r");
-					// Init short timer 50ms
-					printf("Starting timer (50ms)...\n\r");
-					
-					CurrentState = ServoRunning;
-				}
-				else if (ThisEvent.EventParam == 2) {
-					printf("TIMEOUT_LONG in ServoRunning\n\r");
-					
-					ES_Event_t Event2Post;
-					Event2Post.EventType = GAME_COMPLETED;
-					ES_PostAll(Event2Post);
-					
-					// Return servo to original position
-					printf("Returning servo to original position...\n\r");
-					
-					CurrentState = ServoStandby;
-				}				
-			}
-			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in ServoRunning\n\r");
+				printf("ES_TIMEOUT in MotorOn\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				GetInputSignal();
+				ConvertSignal();
 				
-				CurrentState = ServoStandby;
+				// Init timer 50ms
+				printf("Starting timer (50ms)...\n\r");
+				
+				CurrentState = MotorOn;
 			}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in ServoRunning\n\r");
+				printf("GAME_COMPLETED in MotorOn\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Stop PWM
+				printf("Stopping PWM...\n\r");
 				
-				CurrentState = ServoStandby;
+				CurrentState = MotorOff;
 			}
 			break;
 		}
@@ -226,7 +211,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-ServoState_t QueryServo(void)
+MotorState_t QueryMotor(void)
 {
   return CurrentState;
 }
@@ -234,8 +219,24 @@ ServoState_t QueryServo(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void ServoInitialize( void) {
+void MotorInitialize( void) {
 	
-	// Initialize the output line for the servo
+	// Initialize the analog input line
+	
+	// Initialize the output line for the motor
+	
+}
+
+void GetInputSignal( void) {
+	
+	printf("Getting the input signal...\n\r");
+	// Read the current analog input
+	
+}
+
+void ConvertSignal( void) {
+	
+	printf("Converting the analog signal...\n\r");
+	// Convert the analog signal into a digital output signal to the motor
 	
 }

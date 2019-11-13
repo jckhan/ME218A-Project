@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef TOT_H
-#define TOT_H
+#ifndef Motor_H
+#define Motor_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -17,22 +17,27 @@
 // State definitions for use with the query function
 typedef enum
 {
-	NoTOT,
-	YesTOT,
-	Waiting4NextGame
-}TOTState_t;
+  MotorOff, 
+	MotorOn,
+}MotorState_t;
+
+/*typedef enum
+{
+	PingPong_NotCompleted,
+  PingPong_Completed
+}GameState_t;*/
 
 // Public Function Prototypes
 
-bool InitTOT(uint8_t Priority);
-bool PostTOT(ES_Event_t ThisEvent);
-ES_Event_t RunTOT(ES_Event_t ThisEvent);
-TOTState_t QueryTOT(void);
+bool InitMotor(uint8_t Priority);
+bool PostMotor(ES_Event_t ThisEvent);
+ES_Event_t RunMotor(ES_Event_t ThisEvent);
+MotorState_t QueryMotor(void);
 
-void TOTInitialize( void);
-void ReleaseTOT( void);
-uint8_t GetTOTState( void);
-bool CheckTOTEvents( void);
+// Change the parameters for these prototypes are you write them
+void MotorInitialize( void);
+void GetInputSignal( void);
+void ConvertSignal( void);
 
 #endif 
 

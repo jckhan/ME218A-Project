@@ -25,9 +25,28 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "Servo.h"
+#include "Spinner.h"
+
+#include "BITDEFS.H"
+
+// the headers to access the GPIO subsystem
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_sysctl.h"
+
+// the headers to access the TivaWare Library
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
+#define MAYBESPINNING_TIME 	100
+#define SPINNING_TIME				200
+#define SPINNERHI						BIT1HI
+#define SPINNERLO						BIT1LO
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -37,7 +56,8 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static ServoState_t CurrentState;
+static SpinnerState_t CurrentState;
+static uint8_t LastSpinnerState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,16 +81,19 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitServo(uint8_t Priority)
+bool InitSpinner(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	ServoInitialize();
+	SpinnerInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = ServoStandby;
+  CurrentState = Waiting4TOT;
+	
+	LastSpinnerState = GetSpinnerState();
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -100,7 +123,7 @@ bool InitServo(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostServo(ES_Event_t ThisEvent)
+bool PostSpinner(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -122,84 +145,106 @@ bool PostServo(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunServo(ES_Event_t ThisEvent)
+ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case ServoStandby:
+		case Waiting4TOT:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = ServoStandby;
+        CurrentState = Waiting4TOT;
 				break;
       }
-			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in ServoStandby\n\r");
+			else if (ThisEvent.EventType == START_POTATO) {
+				printf("START_POTATO in Waiting4TOT\n\r");
 				
-				// Init short timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				// Init long timer 60s
-				printf("Starting timer (60s)...\n\r");
-				// Start the servo motor
-				printf("Starting servo motor...\n\r");
-				
-				CurrentState = ServoRunning;
+				CurrentState = Waiting4Pulse;
 			}
 			break;
 		}
 		
-		case ServoRunning:
+		case Waiting4Pulse:
 		{
-			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in ServoRunning\n\r");
+			if (ThisEvent.EventType == PULSE_DETECTED) {
+				printf("PULSE_DETECTED in Waiting4Pulse\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Init 200ms timer
+				printf("Starting timer (200ms)...\n\r");
+				ES_Timer_InitTimer(5, MAYBESPINNING_TIME);
 				
-				CurrentState = ServoStandby;
+				CurrentState = MaybeSpinning;
+			}
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Waiting4Pulse\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Waiting4TOT;
+			}
+			break;
+		}
+		case MaybeSpinning:
+		{
+			if (ThisEvent.EventType == PULSE_DETECTED) {
+				printf("PULSE_DETECTED in MaybeSpinning\n\r");
+				
+				// Init 100ms timer
+				printf("Starting timer (100ms)...\n\r");
+				ES_Timer_InitTimer(5, SPINNING_TIME);
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_START;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Spinning;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				if (ThisEvent.EventParam == 1) {
-					printf("TIMEOUT_SHORT in ServoRunning\n\r");
-					
-					// Increment servo
-					printf("Incrementing servo...\n\r");
-					// Init short timer 50ms
-					printf("Starting timer (50ms)...\n\r");
-					
-					CurrentState = ServoRunning;
-				}
-				else if (ThisEvent.EventParam == 2) {
-					printf("TIMEOUT_LONG in ServoRunning\n\r");
-					
-					ES_Event_t Event2Post;
-					Event2Post.EventType = GAME_COMPLETED;
-					ES_PostAll(Event2Post);
-					
-					// Return servo to original position
-					printf("Returning servo to original position...\n\r");
-					
-					CurrentState = ServoStandby;
-				}				
+				printf("ES_TIMEOUT in MaybeSpinning\n\r");
+				
+				CurrentState = Waiting4Pulse;
 			}
-			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in ServoRunning\n\r");
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in MaybeSpinning\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
 				
-				CurrentState = ServoStandby;
+				CurrentState = Waiting4TOT;
 			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in ServoRunning\n\r");
+			break;
+		}
+		case Spinning:
+		{
+			if (ThisEvent.EventType == PULSE_DETECTED) {
+				printf("PULSE_DETECTED in Spinning\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Init the 200ms timer
+				ES_Timer_InitTimer(5, SPINNING_TIME);
+			}
+			else if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Spinning\n\r");
 				
-				CurrentState = ServoStandby;
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Waiting4Pulse;
+			}
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Spinning\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = SPINNER_STOP;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = Waiting4TOT;
 			}
 			break;
 		}
@@ -226,7 +271,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-ServoState_t QueryServo(void)
+SpinnerState_t QuerySpinner(void)
 {
   return CurrentState;
 }
@@ -234,8 +279,49 @@ ServoState_t QueryServo(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void ServoInitialize( void) {
+void SpinnerInitialize( void) {
+	// Initialize the input data line for the Hall Effect sensor
+  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1;
+	while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1) {
+	}
+
+	HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= SPINNERHI;
+
+	HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) &= SPINNERLO;
+
+  //printf("Spinner initialized\n\r");
+}
+
+uint8_t GetSpinnerState( void) {
+	uint8_t InputState;
 	
-	// Initialize the output line for the servo
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & SPINNERHI) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+bool CheckSpinnerEvents( void) {
+	
+	bool ReturnVal = false;
+
+	uint8_t CurrentSpinnerState = GetSpinnerState();
+  //printf("Spinner state: %d\n\r", CurrentSpinnerState);
+	
+	if (CurrentSpinnerState != LastSpinnerState) {
+      //printf("Last spinner state: %d\n\r", LastSpinnerState);
+      //printf("Current spinner state: %d\n\r", CurrentSpinnerState);
+			ES_Event_t ThisEvent;
+			ThisEvent.EventType = PULSE_DETECTED;
+			PostSpinner(ThisEvent);
+      
+      ReturnVal = true;
+  }
+	
+  LastSpinnerState = CurrentSpinnerState;
+
+  return ReturnVal;
 	
 }

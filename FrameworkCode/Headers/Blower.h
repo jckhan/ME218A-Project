@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef TOT_H
-#define TOT_H
+#ifndef Blower_H
+#define Blower_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -17,22 +17,21 @@
 // State definitions for use with the query function
 typedef enum
 {
-	NoTOT,
-	YesTOT,
-	Waiting4NextGame
-}TOTState_t;
+  BlowerStandby,
+	NotBlowing,
+	Blowing
+}BlowerState_t;
 
 // Public Function Prototypes
 
-bool InitTOT(uint8_t Priority);
-bool PostTOT(ES_Event_t ThisEvent);
-ES_Event_t RunTOT(ES_Event_t ThisEvent);
-TOTState_t QueryTOT(void);
+bool InitBlower(uint8_t Priority);
+bool PostBlower(ES_Event_t ThisEvent);
+ES_Event_t RunBlower(ES_Event_t ThisEvent);
+BlowerState_t QueryBlower(void);
 
-void TOTInitialize( void);
-void ReleaseTOT( void);
-uint8_t GetTOTState( void);
-bool CheckTOTEvents( void);
+void BlowerInitialize( void);
+bool CheckBlowerEvents( void);
+static uint8_t GetCurrentState( void);
 
 #endif 
 

@@ -25,7 +25,23 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "Servo.h"
+#include "Blower.h"
+#include "Game.h"
+
+#include "BITDEFS.H"
+
+// the headers to access the GPIO subsystem
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_sysctl.h"
+
+// the headers to access the TivaWare Library
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -37,7 +53,8 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static ServoState_t CurrentState;
+static BlowerState_t CurrentState;
+static uint8_t LastBlowerState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,16 +78,19 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitServo(uint8_t Priority)
+bool InitBlower(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	ServoInitialize();
+	BlowerInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = ServoStandby;
+  CurrentState = BlowerStandby;
+	
+	LastBlowerState = GetCurrentState();
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -100,7 +120,7 @@ bool InitServo(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostServo(ES_Event_t ThisEvent)
+bool PostBlower(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -122,84 +142,89 @@ bool PostServo(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunServo(ES_Event_t ThisEvent)
+ES_Event_t RunBlower(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case ServoStandby:
+		case BlowerStandby:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = ServoStandby;
+        CurrentState = BlowerStandby;
 				break;
       }
-			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in ServoStandby\n\r");
+			else if (ThisEvent.EventType == PP_COMPLETED) {
+				printf("PP_COMPLETED in BlowerStandby\n\r");
 				
-				// Init short timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				// Init long timer 60s
-				printf("Starting timer (60s)...\n\r");
-				// Start the servo motor
-				printf("Starting servo motor...\n\r");
-				
-				CurrentState = ServoRunning;
+				CurrentState = NotBlowing;
+			}
+			else if (ThisEvent.EventType == SPINNER_START) {
+				GameState_t GameState = QueryGame();
+				if (GameState == PingPong_Completed) {
+					printf("SPINNER_START in BlowerStandby\n\r");
+					CurrentState = NotBlowing;
+				}				
 			}
 			break;
 		}
 		
-		case ServoRunning:
+		case NotBlowing:
 		{
-			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in ServoRunning\n\r");
+			if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in NotBlowing\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
-				
-				CurrentState = ServoStandby;
+				CurrentState = BlowerStandby;
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
+			else if (ThisEvent.EventType == BLOWING_START) {
+				printf("BLOWER_START in NotBlowing\n\r");
+				
+				// Init 8s timer
+				printf("Starting timer (8s)...\n\r");
+				
+				// Init 2s timer
+				printf("Starting timer (2s)...\n\r");
+				
+				CurrentState = Blowing;
+			}
+			break;
+		}
+		case Blowing:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Blowing\n\r");
 				if (ThisEvent.EventParam == 1) {
-					printf("TIMEOUT_SHORT in ServoRunning\n\r");
 					
-					// Increment servo
-					printf("Incrementing servo...\n\r");
-					// Init short timer 50ms
-					printf("Starting timer (50ms)...\n\r");
+					// Increment LEDs
+					printf("Incrementing LEDs...\n\r");
 					
-					CurrentState = ServoRunning;
-				}
-				else if (ThisEvent.EventParam == 2) {
-					printf("TIMEOUT_LONG in ServoRunning\n\r");
+					// Init 2s timer
+					printf("Starting timer (2s)...\n\r");
+					
+					CurrentState = Blowing;
+				} else if (ThisEvent.EventParam == 2) {
 					
 					ES_Event_t Event2Post;
 					Event2Post.EventType = GAME_COMPLETED;
 					ES_PostAll(Event2Post);
 					
-					// Return servo to original position
-					printf("Returning servo to original position...\n\r");
-					
-					CurrentState = ServoStandby;
-				}				
+					CurrentState = BlowerStandby;
+				}
 			}
-			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in ServoRunning\n\r");
+			else if (ThisEvent.EventType == BLOWING_STOP) {
+				printf("BLOWING_STOP in Blowing\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Turn off all LEDs
+				printf("Turning off all LEDs...\n\r");
 				
-				CurrentState = ServoStandby;
+				CurrentState = NotBlowing;
 			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in ServoRunning\n\r");
+			else if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in Blowing\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
-				
-				CurrentState = ServoStandby;
+				CurrentState = BlowerStandby;
 			}
 			break;
 		}
@@ -226,7 +251,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-ServoState_t QueryServo(void)
+BlowerState_t QueryBlower(void)
 {
   return CurrentState;
 }
@@ -234,8 +259,51 @@ ServoState_t QueryServo(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void ServoInitialize( void) {
+void BlowerInitialize( void) {
+	// Initialize the input line for the microphone
+}
+
+static uint8_t GetCurrentState( void) {
+  uint8_t InputState = 0;
+	/*
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT7HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+	*/
+	return InputState;
+}
+
+bool CheckBlowerEvents( void) {
 	
-	// Initialize the output line for the servo
+	bool ReturnVal = false;
+
+	uint8_t CurrentBlowerState = GetCurrentState();
+	
+	if (CurrentBlowerState != LastBlowerState) {
+      if (CurrentBlowerState) {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = BLOWING_START;
+        PostBlower(ThisEvent);
+      }
+      else {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = BLOWING_STOP;
+        PostBlower(ThisEvent);
+      }
+
+      ReturnVal = true;
+  }
+	
+  LastBlowerState = CurrentBlowerState;
+  return ReturnVal;
 	
 }
+
+
+
+
+
+		

@@ -25,7 +25,23 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "Servo.h"
+#include "PingPong.h"
+#include "Game.h"
+
+#include "BITDEFS.H"
+
+// the headers to access the GPIO subsystem
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_sysctl.h"
+
+// the headers to access the TivaWare Library
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -37,7 +53,9 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static ServoState_t CurrentState;
+static PingPongState_t CurrentState;
+static uint8_t LastMiddleState;
+static uint8_t LastTopState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,16 +79,20 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitServo(uint8_t Priority)
+bool InitPingPong(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	ServoInitialize();
+	PingPongInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = ServoStandby;
+  CurrentState = PPStandby;
+	
+	LastMiddleState = GetIRMiddle();
+	LastTopState = GetIRTop();
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -100,7 +122,7 @@ bool InitServo(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostServo(ES_Event_t ThisEvent)
+bool PostPingPong(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -122,88 +144,100 @@ bool PostServo(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunServo(ES_Event_t ThisEvent)
+ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case ServoStandby:
+		case PPStandby:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = ServoStandby;
+        CurrentState = PPStandby;
 				break;
       }
-			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in ServoStandby\n\r");
+			else if (ThisEvent.EventType == SPINNER_START) {
+				printf("SPINNER_START in PPStandby\n\r");
 				
-				// Init short timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				// Init long timer 60s
-				printf("Starting timer (60s)...\n\r");
-				// Start the servo motor
-				printf("Starting servo motor...\n\r");
-				
-				CurrentState = ServoRunning;
+				CurrentState = Neutral;
 			}
 			break;
 		}
 		
-		case ServoRunning:
+		case Neutral:
 		{
-			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in ServoRunning\n\r");
+			if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in Neutral\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
-				
-				CurrentState = ServoStandby;
+				CurrentState = PPStandby;
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				if (ThisEvent.EventParam == 1) {
-					printf("TIMEOUT_SHORT in ServoRunning\n\r");
-					
-					// Increment servo
-					printf("Incrementing servo...\n\r");
-					// Init short timer 50ms
-					printf("Starting timer (50ms)...\n\r");
-					
-					CurrentState = ServoRunning;
-				}
-				else if (ThisEvent.EventParam == 2) {
-					printf("TIMEOUT_LONG in ServoRunning\n\r");
-					
-					ES_Event_t Event2Post;
-					Event2Post.EventType = GAME_COMPLETED;
-					ES_PostAll(Event2Post);
-					
-					// Return servo to original position
-					printf("Returning servo to original position...\n\r");
-					
-					CurrentState = ServoStandby;
-				}				
+			else if (ThisEvent.EventType == FALLING_MIDDLE) {
+				printf("FALLING_MIDDLE in Neutral\n\r");
+				
+				// Init 3s timer
+				printf("Starting timer (3s)...\n\r");
+				
+				CurrentState = Middle;
 			}
-			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in ServoRunning\n\r");
+			else if (ThisEvent.EventType == FALLING_TOP) {
+				printf("FALLING_TOP in Neutral\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Init 3s timer
+				printf("Starting timer (3s)...\n\r");
 				
-				CurrentState = ServoStandby;
-			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in ServoRunning\n\r");
-				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
-				
-				CurrentState = ServoStandby;
+				CurrentState = Top;
 			}
 			break;
 		}
-		default:
+		case Middle:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Middle\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = POS_MIDDLE;
+				PostGame(Event2Post);
+				
+				CurrentState = Middle;
+			}
+			else if (ThisEvent.EventType == RISING_MIDDLE) {
+				printf("RISING_MIDDLE in Middle\n\r");
+				
+				CurrentState = Neutral;
+			}
+			else if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in Middle\n\r");
+				
+				CurrentState = PPStandby;
+			}
+			break;
+		}
+		case Top:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Top\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = POS_TOP;
+				PostGame(Event2Post);
+				
+				CurrentState = Top;
+			}
+			else if (ThisEvent.EventType == RISING_TOP) {
+				printf("RISING_Top in Top\n\r");
+				
+				CurrentState = Neutral;
+			}
+			else if (ThisEvent.EventType == SPINNER_STOP) {
+				printf("SPINNER_STOP in Top\n\r");
+				
+				CurrentState = PPStandby;
+			}
+			break;
+		}
+				default:
       ;
   }                                   // end switch on Current State
   return ReturnEvent;
@@ -226,7 +260,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-ServoState_t QueryServo(void)
+PingPongState_t QueryPingPong(void)
 {
   return CurrentState;
 }
@@ -234,8 +268,75 @@ ServoState_t QueryServo(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void ServoInitialize( void) {
+void PingPongInitialize( void) {
+	// Initialize the input lines to check for the middle and top IR LEDs
+}
+
+static uint8_t GetIRMiddle( void) {
+  uint8_t InputState = 1;
+	/*
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT7HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+	*/
+	return InputState;
+}
+
+static uint8_t GetIRTop( void) {
+  uint8_t InputState = 1;
+
+	return InputState;
+}
+
+bool CheckPingPongEvents( void) {
 	
-	// Initialize the output line for the servo
+	bool ReturnVal = false;
+	// Sample the middle IR line
+	uint8_t CurrentMiddleState = GetIRMiddle();
+	// Sample the top IR line
+	uint8_t CurrentTopState = GetIRTop();
+	
+	if (CurrentMiddleState != LastMiddleState) {
+      if (CurrentMiddleState) {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = RISING_MIDDLE;
+        PostPingPong(ThisEvent);
+      }
+      else {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = FALLING_MIDDLE;
+        PostPingPong(ThisEvent);
+      }
+
+      ReturnVal = true;
+  }
+	
+	if (CurrentTopState != LastTopState) {
+      if (CurrentTopState) {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = RISING_TOP;
+        PostPingPong(ThisEvent);
+      }
+      else {
+        ES_Event_t ThisEvent;
+        ThisEvent.EventType = FALLING_TOP;
+        PostPingPong(ThisEvent);
+      }
+
+      ReturnVal = true;
+  }
+	
+  LastMiddleState = CurrentMiddleState;
+	LastTopState = CurrentTopState;
+  return ReturnVal;
 	
 }
+
+
+
+
+
+		

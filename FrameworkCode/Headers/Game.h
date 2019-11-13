@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef TOT_H
-#define TOT_H
+#ifndef Game_H
+#define Game_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -17,22 +17,24 @@
 // State definitions for use with the query function
 typedef enum
 {
-	NoTOT,
-	YesTOT,
-	Waiting4NextGame
-}TOTState_t;
+  GameStandby,
+	Level1,
+	Level2,
+	Level3,
+	PingPong_Completed
+}GameState_t;
 
 // Public Function Prototypes
 
-bool InitTOT(uint8_t Priority);
-bool PostTOT(ES_Event_t ThisEvent);
-ES_Event_t RunTOT(ES_Event_t ThisEvent);
-TOTState_t QueryTOT(void);
+bool InitGame(uint8_t Priority);
+bool PostGame(ES_Event_t ThisEvent);
+ES_Event_t RunGame(ES_Event_t ThisEvent);
+GameState_t QueryGame(void);
 
-void TOTInitialize( void);
-void ReleaseTOT( void);
-uint8_t GetTOTState( void);
-bool CheckTOTEvents( void);
+void GameInitialize( void);
+void LEDMiddle(uint8_t Setting);
+void LEDTop(uint8_t Setting);
+void LEDSuccess(uint8_t Setting);
 
 #endif 
 

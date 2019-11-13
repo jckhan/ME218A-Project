@@ -24,10 +24,15 @@
 #include "ES_Framework.h"
 #include "KeyMapper.h"
 #include "EventCheckers.h"
+
+// Include every state machine
 #include "TOT.h"
 #include "Servo.h"
-// Include every state machine
-
+#include "Motor.h"
+#include "Spinner.h"
+#include "Game.h"
+#include "PingPong.h"
+#include "Blower.h"
 
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -137,6 +142,8 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 	if (ThisEvent.EventType == ES_NEW_KEY) {
 		char newKey = ThisEvent.EventParam;
 		ES_Event_t Event2Post;
+		
+		printf("\n\r");
 		
 		switch(newKey)
 		{
@@ -288,7 +295,48 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 				PostServo(Event2Post);
 				break;
 			}
-			
+			case '4':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostMotor(Event2Post);
+				break;
+			}
+			case '5':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostSpinner(Event2Post);
+				break;
+			}
+			case '6':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 1;
+				PostBlower(Event2Post);
+				break;
+			}
+			case '7':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 2;
+				PostBlower(Event2Post);
+				break;
+			}
+			case '8':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostGame(Event2Post);
+				break;
+			}
+			case '9':
+			{
+				Event2Post.EventType = ES_TIMEOUT;
+				Event2Post.EventParam = 0;
+				PostPingPong(Event2Post);
+				break;
+			}
 		}
 		//printf("%c", newKey);
 	}

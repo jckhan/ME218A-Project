@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef TOT_H
-#define TOT_H
+#ifndef PingPong_H
+#define PingPong_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
@@ -17,22 +17,23 @@
 // State definitions for use with the query function
 typedef enum
 {
-	NoTOT,
-	YesTOT,
-	Waiting4NextGame
-}TOTState_t;
+  PPStandby,
+	Neutral,
+	Middle,
+	Top
+}PingPongState_t;
 
 // Public Function Prototypes
 
-bool InitTOT(uint8_t Priority);
-bool PostTOT(ES_Event_t ThisEvent);
-ES_Event_t RunTOT(ES_Event_t ThisEvent);
-TOTState_t QueryTOT(void);
+bool InitPingPong(uint8_t Priority);
+bool PostPingPong(ES_Event_t ThisEvent);
+ES_Event_t RunPingPong(ES_Event_t ThisEvent);
+PingPongState_t QueryPingPong(void);
 
-void TOTInitialize( void);
-void ReleaseTOT( void);
-uint8_t GetTOTState( void);
-bool CheckTOTEvents( void);
+void PingPongInitialize( void);
+bool CheckPingPongEvents( void);
+static uint8_t GetIRMiddle( void);
+static uint8_t GetIRTop( void);
 
 #endif 
 

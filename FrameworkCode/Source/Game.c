@@ -25,7 +25,7 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "Servo.h"
+#include "Game.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -37,7 +37,7 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static ServoState_t CurrentState;
+static GameState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,16 +61,16 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitServo(uint8_t Priority)
+bool InitGame(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
 	
-	ServoInitialize();
+	GameInitialize();
 	
   // put us into the Initial PseudoState
-  CurrentState = ServoStandby;
+  CurrentState = GameStandby;
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -100,7 +100,7 @@ bool InitServo(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostServo(ES_Event_t ThisEvent)
+bool PostGame(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -122,84 +122,121 @@ bool PostServo(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunServo(ES_Event_t ThisEvent)
+ES_Event_t RunGame(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
   switch (CurrentState)
   {
-		case ServoStandby:
+		case GameStandby:
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        CurrentState = ServoStandby;
+        CurrentState = GameStandby;
 				break;
       }
-			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in ServoStandby\n\r");
+			else if (ThisEvent.EventType == SPINNER_START) {
+				printf("SPINNER_START in GameStandby\n\r");
 				
-				// Init short timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				// Init long timer 60s
-				printf("Starting timer (60s)...\n\r");
-				// Start the servo motor
-				printf("Starting servo motor...\n\r");
+				// Turn on middle LEDs
+				LEDMiddle(1);
 				
-				CurrentState = ServoRunning;
+				CurrentState = Level1;
 			}
 			break;
 		}
 		
-		case ServoRunning:
+		case Level1:
 		{
-			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in ServoRunning\n\r");
+			if (ThisEvent.EventType == POS_MIDDLE) {
+				printf("POS_MIDDLE in Level1\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Turn off middle LEDs
+				LEDMiddle(0);
+				// Turn on top LEDs
+				LEDTop(1);
 				
-				CurrentState = ServoStandby;
+				CurrentState = Level2;
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				if (ThisEvent.EventParam == 1) {
-					printf("TIMEOUT_SHORT in ServoRunning\n\r");
-					
-					// Increment servo
-					printf("Incrementing servo...\n\r");
-					// Init short timer 50ms
-					printf("Starting timer (50ms)...\n\r");
-					
-					CurrentState = ServoRunning;
-				}
-				else if (ThisEvent.EventParam == 2) {
-					printf("TIMEOUT_LONG in ServoRunning\n\r");
-					
-					ES_Event_t Event2Post;
-					Event2Post.EventType = GAME_COMPLETED;
-					ES_PostAll(Event2Post);
-					
-					// Return servo to original position
-					printf("Returning servo to original position...\n\r");
-					
-					CurrentState = ServoStandby;
-				}				
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Level1\n\r");
+				
+				// Turn off all LEDs
+				LEDMiddle(0);
+				
+				CurrentState = GameStandby;
 			}
-			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in ServoRunning\n\r");
+			break;
+		}
+		case Level2:
+		{
+			if (ThisEvent.EventType == POS_TOP) {
+				printf("POS_TOP in Level2\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Turn off top LEDs
+				LEDTop(0);
+				// Turn on middle LEDs
+				LEDMiddle(1);
 				
-				CurrentState = ServoStandby;
+				CurrentState = Level3;
 			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in ServoRunning\n\r");
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Level2\n\r");
 				
-				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				// Turn off all LEDs
+				LEDTop(0);
 				
-				CurrentState = ServoStandby;
+				CurrentState = GameStandby;
+			}
+			break;
+		}
+		case Level3:
+		{
+			if (ThisEvent.EventType == POS_MIDDLE) {
+				printf("POS_MIDDLE in Level3\n\r");
+				
+				// Turn off middle LEDs
+				LEDMiddle(0);
+				// Turn on success LEDs
+				LEDSuccess(1);
+				
+				// Init 3s timer
+				printf("Starting timer (3s)...\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = PP_COMPLETED;
+				ES_PostAll(Event2Post);
+				
+				CurrentState = PingPong_Completed;
+			}
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in Level3\n\r");
+				
+				// Turn off all LEDs
+				LEDMiddle(0);
+				
+				CurrentState = GameStandby;
+			}
+			break;
+		}
+		case PingPong_Completed:
+		{
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in PingPong_Completed\n\r");
+				
+				// Turn off success LEDs
+				LEDSuccess(0);
+				
+				CurrentState = PingPong_Completed;
+			}
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in PingPong_Completed\n\r");
+				
+				// Turn off success LEDs
+				LEDSuccess(0);
+				
+				CurrentState = GameStandby;
 			}
 			break;
 		}
@@ -226,7 +263,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-ServoState_t QueryServo(void)
+GameState_t QueryGame(void)
 {
   return CurrentState;
 }
@@ -234,8 +271,40 @@ ServoState_t QueryServo(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void ServoInitialize( void) {
-	
-	// Initialize the output line for the servo
-	
+void GameInitialize( void) {
+	// Initialize the output data line to power on the middle, top, and success LEDs
 }
+
+void LEDMiddle(uint8_t Setting) {
+	if (Setting == 0) {
+		// Turn off middle LEDs
+		printf("Turning off middle LEDs...\n\r");
+	}
+	else if (Setting == 1){
+		// Turn on middle LEDs
+		printf("Turning on middle LEDs...\n\r");
+	}
+}
+
+void LEDTop(uint8_t Setting) {
+	if (Setting == 0) {
+		// Turn off top LEDs
+		printf("Turning off top LEDs...\n\r");
+	}
+	else if (Setting == 1){
+		// Turn on top LEDs
+		printf("Turning on top LEDs...\n\r");
+	}
+}
+
+void LEDSuccess(uint8_t Setting) {
+	if (Setting == 0) {
+		// Turn off success LEDs
+		printf("Turning off success LEDs...\n\r");
+	}
+	else if (Setting == 1){
+		// Turn on success LEDs
+		printf("Turning on success LEDs...\n\r");
+	}
+}
+		

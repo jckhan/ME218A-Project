@@ -20,5 +20,9 @@
 
 // Here you would #include the header files for any other modules that
 // contained event checking functions
+#include "TOT.h"
+#include "Spinner.h"
+#include "PingPong.h"
+#include "Blower.h"
 
 #endif  // ES_EventCheckWrapper_H
