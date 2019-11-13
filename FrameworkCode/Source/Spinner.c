@@ -43,8 +43,10 @@
 #include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define MAYBESPINNING_TIME 	250
-#define SPINNING_TIME				500
+#define MAYBESPINNING_TIME 	100
+#define SPINNING_TIME				200
+#define SPINNERHI						BIT1HI
+#define SPINNERLO						BIT1LO
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -170,8 +172,8 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 			if (ThisEvent.EventType == PULSE_DETECTED) {
 				printf("PULSE_DETECTED in Waiting4Pulse\n\r");
 				
-				// Init 500ms timer
-				printf("Starting timer (500ms)...\n\r");
+				// Init 200ms timer
+				printf("Starting timer (200ms)...\n\r");
 				ES_Timer_InitTimer(5, MAYBESPINNING_TIME);
 				
 				CurrentState = MaybeSpinning;
@@ -192,8 +194,8 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 			if (ThisEvent.EventType == PULSE_DETECTED) {
 				printf("PULSE_DETECTED in MaybeSpinning\n\r");
 				
-				// Init 1s timer
-				printf("Starting timer (1s)...\n\r");
+				// Init 100ms timer
+				printf("Starting timer (100ms)...\n\r");
 				ES_Timer_InitTimer(5, SPINNING_TIME);
 				
 				ES_Event_t Event2Post;
@@ -223,7 +225,7 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 			if (ThisEvent.EventType == PULSE_DETECTED) {
 				printf("PULSE_DETECTED in Spinning\n\r");
 				
-				// Init the 1s timer
+				// Init the 200ms timer
 				ES_Timer_InitTimer(5, SPINNING_TIME);
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
@@ -283,18 +285,18 @@ void SpinnerInitialize( void) {
 	while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1) {
 	}
 
-	HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= BIT7HI;
+	HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= SPINNERHI;
 
-	HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) &= BIT7LO;
+	HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) &= SPINNERLO;
 
-  printf("Spinner initialized\n\r");
+  //printf("Spinner initialized\n\r");
 }
 
 uint8_t GetSpinnerState( void) {
 	uint8_t InputState;
 	
   InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
-  if (InputState & BIT7HI) {
+  if (InputState & SPINNERHI) {
     return 1;
   } else {
     return 0;
