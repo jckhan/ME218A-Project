@@ -43,8 +43,8 @@
 #include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define MAYBESPINNING_TIME 	500
-#define SPINNING_TIME				1000
+#define MAYBESPINNING_TIME 	250
+#define SPINNING_TIME				500
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -222,7 +222,9 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == PULSE_DETECTED) {
 				printf("PULSE_DETECTED in Spinning\n\r");
-
+				
+				// Init the 1s timer
+				ES_Timer_InitTimer(5, SPINNING_TIME);
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in Spinning\n\r");
