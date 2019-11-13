@@ -516,11 +516,11 @@
               <FilePath>.\Source\PingPong.c</FilePath>
             </File>
             <File>
-<<<<<<< HEAD
               <FileName>Blower.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\Blower.c</FilePath>
-=======
+            </File>
+            <File>
               <FileName>Servo_TEST.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Servo_TEST.c</FilePath>
@@ -697,6 +697,11 @@
               <FileName>PWM16Tiva.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\PWM16Tiva.h</FilePath>
+            </File>
+            <File>
+              <FileName>Blower.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Blower.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1362,6 +1367,11 @@
               <FilePath>.\Source\PingPong.c</FilePath>
             </File>
             <File>
+              <FileName>Blower.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Blower.c</FilePath>
+            </File>
+            <File>
               <FileName>Servo_TEST.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Servo_TEST.c</FilePath>
@@ -1370,7 +1380,6 @@
               <FileName>Servo_actuator.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Servo_actuator.c</FilePath>
->>>>>>> dev/JF/TOT_hardware_software_integration
             </File>
           </Files>
         </Group>
