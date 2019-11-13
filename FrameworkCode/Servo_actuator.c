@@ -21,41 +21,18 @@
 
 #include "PWM16Tiva.h"
 
-#define TowerProLimLow 1000 //Lower Limit of pulse in ticks (1 tick = 0.8 microseconds)
-#define TowerProLimHigh 3200 //Upper Limit of pulse in ticks (1 tick = 0.8 microseconds)
+#define TowerProLimLow 650 //Lower Limit of pulse in ticks (1 tick = 0.8 microseconds)
+#define TowerProLimHigh 3000 //Upper Limit of pulse in ticks (1 tick = 0.8 microseconds)
 #define clrScrn() printf("\x1b[2J")
 void ServoPinInit(uint8_t HowMany){ //Takes input how many PWM channels we need (Each channel activates two pins [called 'groups'], this is a hardware limitation)
 	PWM_TIVA_Init(HowMany); //Max 16 channels, which is 8 groups, and so only 8 unique PWM PERIODS, but can have 16 unique pulse widths
 } 
 
-void ServoPWM(uint16_t des_angle, uint8_t group, uint8_t channel){ //Desired angle is between 0 and 180 
-	printf("in servo PWM \r\n");
-	uint16_t reqPeriod = 20000;
-	uint16_t PulseWidth = 1000 + ((des_angle/180.0)*2200);
-	printf("%d \r\n",PulseWidth);
+void ServoPWM(uint16_t des_angle, uint8_t group, uint8_t channel){ //Desired angle is between 0 and 180 // Channel and group both start from 0
+	uint16_t reqPeriod = 25000;
+	uint16_t PulseWidth = TowerProLimLow + (((double)(des_angle)/180)*(TowerProLimHigh - TowerProLimLow));
 	PWM_TIVA_SetPeriod( reqPeriod, group);
 	PWM_TIVA_SetPulseWidth( PulseWidth, channel);
-	printf("PWM Set \r\n");
 }
-int main(void){
-	SysCtlClockSet(SYSCTL_SYSDIV_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
-      | SYSCTL_XTAL_16MHZ);
-  TERMIO_Init();
-  clrScrn();
-	
-	printf("running main\r\n");
-	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI;
-	while((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
-	}
-	HWREG(GPIO_PORTB_BASE +GPIO_O_DEN) |=  BIT6HI;
-	HWREG(GPIO_PORTB_BASE +GPIO_O_DIR) |=  BIT6HI;
-  // Set the clock to run at 40MhZ using the PLL and 16MHz external crystal
-	printf("Testing Servo \r\n");
-	ServoPinInit(1);
-	while(!kbhit()){
-	}
-	printf("keyboard hit \r\n");
-	ServoPWM(90, 0, 1);
-	
-	return 0;
-}
+
+

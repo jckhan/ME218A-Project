@@ -19,12 +19,22 @@
 #include "inc/hw_types.h"
 #include "inc/hw_memmap.h"
 #include "driverlib/sysctl.h"
+#include "inc/hw_sysctl.h"
 
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "ES_Port.h"
 #include "termio.h"
 #include "EnablePA25_PB23_PD7_PF0.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_types.h"
+#include "inc/hw_pwm.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+
+#include "PWM16Tiva.h"
 
 #define clrScrn() printf("\x1b[2J")
 #define goHome() printf("\x1b[1,1H")
@@ -39,7 +49,12 @@ int main(void)
       | SYSCTL_XTAL_16MHZ);
   TERMIO_Init();
   clrScrn();
-
+		HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
+		while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
+		}		
+		HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI | BIT2HI | BIT3HI | BIT4HI); //Digital Enable pints 0 through 4
+		HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (BIT0LO & BIT1LO); //Set pins 0 and 1 to inputs
+		HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT2HI | BIT3HI | BIT4HI); //Set pins 2,3 and 4 to outputs
   // When doing testing, it is useful to announce just which program
   // is running.
   puts("\rStarting Test Harness for \r");

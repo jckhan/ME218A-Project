@@ -26,9 +26,24 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "TOT.h"
+#include "Servo_Actuator.h"
+#include "ES_Port.h"
+#include "termio.h"
+#include "EnablePA25_PB23_PD7_PF0.h"
+#include "inc/hw_gpio.h"
+#include "inc/hw_types.h"
+#include "inc/hw_pwm.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/pin_map.h"
+#include "driverlib/gpio.h"
+#include "inc/hw_types.h"
+#include "driverlib/sysctl.h"
+#include "inc/hw_sysctl.h"
+#include "PWM16Tiva.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-
+#define NEXTGAMETIME 1000
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -74,7 +89,7 @@ bool InitTOT(uint8_t Priority)
   CurrentState = NoTOT;
 	
 	LastTOTState = GetTOTState();
-	
+
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -167,11 +182,10 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				ES_PostAll(Event2Post);
 				
 				printf("POTATO ended...\n\r");
-				
-				// Open trapdoor to release TOT
+				//init timer for next game
+				ES_Timer_InitTimer(1, NEXTGAMETIME);
 				ReleaseTOT();
-				
-				CurrentState = NoTOT;
+				CurrentState = Waiting4NextGame;
 			}
 			// Is this conflicting/redundant with the servo timer?
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
@@ -185,8 +199,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				// Open trapdoor to release TOT
 				ReleaseTOT();
-				
-				CurrentState = NoTOT;
+				ES_Timer_InitTimer(1, NEXTGAMETIME);
+				CurrentState = Waiting4NextGame;
 			}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
 				printf("GAME_COMPLETED in YesTOT\n\r");
@@ -199,8 +213,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				// Open trapdoor to release TOT
 				ReleaseTOT();
-				
-				CurrentState = NoTOT;
+				ES_Timer_InitTimer(1, NEXTGAMETIME);
+				CurrentState = Waiting4NextGame;
 			}
 			else if (ThisEvent.EventType == RESET) {
 				printf("RESET in YesTOT\n\r");
@@ -211,7 +225,16 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				// Open trapdoor to release TOT
 				ReleaseTOT();
-				
+				ES_Timer_InitTimer(1, NEXTGAMETIME);
+				CurrentState = Waiting4NextGame;
+			}
+			break;
+		}
+		case Waiting4NextGame:
+		{
+			if(ThisEvent.EventType == ES_TIMEOUT){
+				ServoPWM(0,0,0);
+				printf("ES_TIMEOUT in Waiting4NextGame \n\r");
 				CurrentState = NoTOT;
 			}
 			break;
@@ -249,26 +272,25 @@ TOTState_t QueryTOT(void)
  ***************************************************************************/
 void TOTInitialize( void) {
 	// Initialize a data line as the input for the TOT IR
+
 	// Initialize the control line for the trapdoor servo
+		ServoPinInit(2); //Need 2 servos, channel 0 will be TOT system, channel 1 will be Timer System [BOTH ARE GROUP 0]
+		ServoPWM(20,0,0); //This is PB6
 }
 
 void ReleaseTOT( void) {
-	// Actuate the trapdoor servo to release the TOT
+	ServoPWM(160,0,0);
 	printf("Opening trapdoor to release TOT...\n\r");
 	// Return trapdoor to its default position
 }
 
 uint8_t GetTOTState( void) {
-	uint8_t InputState = 1;
-	/*
-  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
-  if (InputState & BIT7HI) {
+  uint8_t InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT0HI) {
     return 1;
   } else {
     return 0;
   }
-	*/
-	return InputState;
 }
 
 bool CheckTOTEvents( void){

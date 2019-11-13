@@ -17,9 +17,9 @@
 // State definitions for use with the query function
 typedef enum
 {
-  InitPState, 
 	NoTOT,
-	YesTOT
+	YesTOT,
+	Waiting4NextGame
 }TOTState_t;
 
 // Public Function Prototypes
