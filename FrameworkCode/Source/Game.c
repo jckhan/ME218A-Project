@@ -296,7 +296,7 @@ void GameInitialize( void) {
 	HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);	//Set Reg clock high
 	
 	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT2HI); //Digital Enable PB2 for Mic Input
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT2LO); //set as input
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (BIT2LO); //set as input
 }
 
 void LEDMiddle(uint8_t Setting) {

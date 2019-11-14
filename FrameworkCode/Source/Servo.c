@@ -33,8 +33,8 @@
 #define SERVO_LOW 160
 #define SERVO_HIGH 0
 #define TOTAL_TIME 60000
-#define SHORT_TIME 500
-#define INCREMENTS 120
+#define SHORT_TIME 1000
+#define INCREMENTS 60
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -48,7 +48,7 @@ void ResetServo( void);
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static ServoState_t CurrentState;
-static uint16_t NumIncrements = TOTAL_TIME / SHORT_TIME;
+//static uint16_t NumIncrements = TOTAL_TIME / SHORT_TIME;
 static uint16_t ServoIncrement = (SERVO_HIGH - SERVO_LOW) / INCREMENTS;
 static uint16_t CurrentPosition = SERVO_LOW;
 
@@ -81,6 +81,8 @@ bool InitServo(uint8_t Priority)
   MyPriority = Priority;
 	
 	ServoInitialize();
+	
+	ES_ShortTimerInit(MyPriority, SHORT_TIMER_UNUSED );
 	
   // put us into the Initial PseudoState
   CurrentState = ServoStandby;
@@ -160,9 +162,6 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				printf("Starting timer (60s)...\n\r");
 				ES_Timer_InitTimer(1, TOTAL_TIME);
 				
-				// Start the servo motor
-				printf("Starting servo motor...\n\r");
-				
 				CurrentState = ServoRunning;
 			}
 			break;
@@ -186,8 +185,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 					// Increment servo
 					IncrementServo();
 					
-					// Init short timer 50ms
-					printf("Starting timer (50ms)...\n\r");
+					// Init short timer 500ms
 					ES_Timer_InitTimer(2, SHORT_TIME);
 					
 					CurrentState = ServoRunning;
@@ -212,16 +210,16 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				printf("RESET in ServoRunning\n\r");
 				
 				// Return servo to original position
-				ES_ShortTimerStart(TIMER_A, INTER_CHAR_DELAY);
 				ResetServo();
 				
 				CurrentState = ServoStandby;
 			}
-			else if (ThisEvent.EventType == GAME_COMPLETED) {
-				printf("GAME_COMPLETED in ServoRunning\n\r");
+			else if (ThisEvent.EventType == END_POTATO) {
+				printf("END_POTATO in ServoRunning\n\r");
 				
 				// Return servo to original position
 				ResetServo();
+				CurrentPosition = SERVO_LOW;
 				
 				CurrentState = ServoStandby;
 			}
@@ -265,9 +263,11 @@ void ServoInitialize( void) {
 
 void IncrementServo( void) {
 	
+	
+	
 	CurrentPosition += ServoIncrement;
 	if (CurrentPosition <= 180) {
-		printf("Incrementing servo to %d...\n\r", CurrentPosition);
+		//printf("Incrementing servo to %d...\n\r", CurrentPosition);
 		ServoPWM(CurrentPosition,0,1);
 	}
 }
@@ -275,5 +275,7 @@ void IncrementServo( void) {
 void ResetServo( void) {
 	printf("Returning servo to original position...\n\r");
 	CurrentPosition = SERVO_LOW;
-	ServoPWM(SERVO_LOW,0,1);
+	//ServoPWM(SERVO_LOW,0,1);
+	//ES_Timer_StopTimer(1);
+	ES_Timer_StopTimer(2);
 }

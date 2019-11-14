@@ -49,7 +49,7 @@ int main(void)
       | SYSCTL_XTAL_16MHZ);
   TERMIO_Init();
   clrScrn();
-	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
+	/*HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
 	while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
 	}
 	HWREG(SYSCTL_RCGCGPIO) |= BIT0HI; //Enable port A
@@ -57,7 +57,7 @@ int main(void)
 	}
 	HWREG(SYSCTL_RCGCGPIO) |= BIT4HI; //Enable port E
 	while ((HWREG(SYSCTL_PRGPIO) & BIT4HI) != BIT4HI){
-	}	
+	}	*/
   // When doing testing, it is useful to announce just which program
   // is running.
   puts("\rStarting Test Harness for \r");

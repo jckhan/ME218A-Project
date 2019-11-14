@@ -188,7 +188,6 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				ReleaseTOT();
 				CurrentState = Waiting4NextGame;
 			}
-			// Is this conflicting/redundant with the servo timer?
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("TIMEOUT in YesTOT\n\r");
 				
