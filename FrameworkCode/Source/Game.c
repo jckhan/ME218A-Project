@@ -301,11 +301,11 @@ void GameInitialize( void) {
 
 void LEDMiddle(uint8_t Setting) {
 	if (Setting == 0) {
-		// Turn off middle LEDs
+		
 		printf("Turning off middle LEDs...\n\r");
 	}
 	else if (Setting == 1){
-		// Turn on middle LEDs
+		
 		printf("Turning on middle LEDs...\n\r");
 	}
 }
@@ -323,11 +323,11 @@ void LEDTop(uint8_t Setting) {
 
 void LEDSuccess(uint8_t Setting) {
 	if (Setting == 0) {
-		// Turn off success LEDs
 		printf("Turning off success LEDs...\n\r");
 	}
 	else if (Setting == 1){
 		// Turn on success LEDs
+
 		printf("Turning on success LEDs...\n\r");
 	}
 }

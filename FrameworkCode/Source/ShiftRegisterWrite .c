@@ -50,7 +50,7 @@
 #define GET_MSB_IN_LSB(x) ((x & 0x80)>>7)
 
 // an image of the last 8 bits written to the shift register
-static uint8_t LocalRegisterImage=0;
+bool CheckHiLo(uint8_t data);
 
 // Create your own function header comment
 void SR_Init(void){
@@ -68,16 +68,40 @@ void SR_Init(void){
 }
 
 // Create your own function header comment
-uint8_t SR_GetCurrentRegister(void){
-  return LocalRegisterImage;
+//uint8_t SR_GetCurrentRegister(void){
+//  return LocalRegisterImage;
+//}
+
+bool CheckHiLo(uint8_t data){
+	if(((BIT1HI & data) == false ) && ((BIT3HI & data) == false)){
+		return true;
+	} else if(((BIT1HI & data) != false ) && ((BIT3HI & data) == false)){
+		if((BIT5HI && data == false)){
+			return true;
+		} else {
+			return false;
+		}
+	} else if(((BIT1HI & data) == false ) && ((BIT3HI & data) != false)){
+		if((BIT5HI && data == false)){
+			return true;
+		} else {
+			return false;
+		}
+	} else {
+		return false;
+	}
+
 }
 
 // Create your own function header comment
 void LED_SR_Write(uint8_t NewValue){
-
-  uint8_t BitCounter;
-  LocalRegisterImage = NewValue; // save a local copy
-	uint8_t loopValue = NewValue;
+	static uint8_t LocalRegisterImage=0;
+  if(CheckHiLo(NewValue)){
+		LocalRegisterImage = (LocalRegisterImage | NewValue);
+	} else {
+		LocalRegisterImage = (LocalRegisterImage & NewValue);
+	}
+	uint8_t loopValue = LocalRegisterImage;
 // lower the register clock
 	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT4LO);
 	for(int i=0; i < 8; i++){

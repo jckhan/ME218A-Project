@@ -2229,6 +2229,16 @@
               <FileType>1</FileType>
               <FilePath>.\Servo_actuator.c</FilePath>
             </File>
+            <File>
+              <FileName>ShiftRegisterWrite .c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ShiftRegisterWrite .c</FilePath>
+            </File>
+            <File>
+              <FileName>Write.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Write.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2358,6 +2368,16 @@
               <FileName>Blower.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\Blower.h</FilePath>
+            </File>
+            <File>
+              <FileName>LCD_Write.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\LCD_Write.h</FilePath>
+            </File>
+            <File>
+              <FileName>ShiftRegisterWrite.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ShiftRegisterWrite.h</FilePath>
             </File>
           </Files>
         </Group>
