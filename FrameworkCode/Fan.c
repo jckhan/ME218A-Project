@@ -38,7 +38,7 @@ uint32_t Pot_ConversionResults[1];
 
 	bool i;
 
-i = PWM_TIVA_Init(3); //Jad already initialized this, Use PB4 for fan motor
+i = PWM_TIVA_Init(7); //Jad already initialized this, Use PB4 for fan motor
 
 //if we set to goup 1 will it change to freq for both PB4 and PB5?
 //Not if you dont Initialize PB5 as PWM
@@ -75,10 +75,10 @@ while(kbhit()!=1)
 	printf("Pot Voltage = %u\r\n",pot_voltage);
 	
 
-	PWM_TIVA_SetPeriod( 63000, 0);
+	PWM_TIVA_SetPeriod( 63000, 3);
 	pulse_width = abs((pot_voltage)*(63000/4093));
 	
-	PWM_TIVA_SetPulseWidth( pulse_width,0);
+	PWM_TIVA_SetPulseWidth( pulse_width,6);
 	
 	
 		
