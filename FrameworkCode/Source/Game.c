@@ -301,11 +301,11 @@ void GameInitialize( void) {
 
 void LEDMiddle(uint8_t Setting) {
 	if (Setting == 0) {
-		
+		LED_SR_Write(BIT4LO);
 		printf("Turning off middle LEDs...\n\r");
 	}
 	else if (Setting == 1){
-		
+		LED_SR_Write(BIT4HI);
 		printf("Turning on middle LEDs...\n\r");
 	}
 }
@@ -313,9 +313,11 @@ void LEDMiddle(uint8_t Setting) {
 void LEDTop(uint8_t Setting) {
 	if (Setting == 0) {
 		// Turn off top LEDs
+		LED_SR_Write(BIT5LO);
 		printf("Turning off top LEDs...\n\r");
 	}
 	else if (Setting == 1){
+		LED_SR_Write(BIT5HI);
 		// Turn on top LEDs
 		printf("Turning on top LEDs...\n\r");
 	}
@@ -323,11 +325,14 @@ void LEDTop(uint8_t Setting) {
 
 void LEDSuccess(uint8_t Setting) {
 	if (Setting == 0) {
+		LED_SR_Write(BIT4LO);
+		LED_SR_Write(BIT5LO);
 		printf("Turning off success LEDs...\n\r");
 	}
 	else if (Setting == 1){
 		// Turn on success LEDs
-
+		LED_SR_Write(BIT4HI);
+		LED_SR_Write(BIT5HI);
 		printf("Turning on success LEDs...\n\r");
 	}
 }
