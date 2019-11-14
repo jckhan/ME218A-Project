@@ -35,4 +35,11 @@ void ServoPWM(uint16_t des_angle, uint8_t group, uint8_t channel){ //Desired ang
 	PWM_TIVA_SetPulseWidth( PulseWidth, channel);
 }
 
+void MotorPWM(uint16_t duty_cycle, uint8_t group, uint8_t channel){ //Duty cycle between 1 and 99 // Channel and group both start from 0
+	uint16_t reqFreq = 0;
+	PWM_TIVA_SetFreq( reqFreq, group);
+	PWM_TIVA_SetDuty(duty_cycle, channel);
+}
+
+
 
