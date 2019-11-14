@@ -29,6 +29,7 @@
 #include "Motor.h"
 #include "PWM16Tiva.h"
 #include "Game.h"
+#include "Fan.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
