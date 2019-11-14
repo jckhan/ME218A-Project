@@ -44,8 +44,8 @@
 #include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define IR_TOP_HI BIT3HI
-#define IR_TOP_LO BIT3LO
+#define IR_TOP_HI BIT5HI
+#define IR_TOP_LO BIT5LO
 #define IR_MID_HI BIT4HI
 #define IR_MID_LO BIT4LO
 
@@ -311,25 +311,25 @@ bool CheckPingPongEvents( void) {
 
 // Initialize the input lines to check for the middle and top IR LEDs
 static void PingPongInitialize( void) {
-	// set up port B by enabling the peripheral clock,
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1;
+	// set up port C by enabling the peripheral clock,
+  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2;
 
   //wait for the clock to be ready
-  while ( (HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1 )
+  while ( (HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2 )
   {
   }
 
   // set PB3 and PB4 to be used as digital I/O
-  HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (IR_TOP_HI | IR_MID_HI) ;
+  HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (IR_TOP_HI | IR_MID_HI) ;
 
   // set PB3 direction to input
-  HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (IR_TOP_LO & IR_MID_LO);
+  HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= (IR_TOP_LO & IR_MID_LO);
 }
 
 // Get the pin status of the middle IR
 static uint8_t GetIRMiddle( void) {
   uint8_t InputState;
-  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  InputState  = HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS));
   if (InputState & IR_MID_HI) {
     return 1;
   } else {
@@ -340,7 +340,7 @@ static uint8_t GetIRMiddle( void) {
 // Get the pin status of the top IR
 static uint8_t GetIRTop( void) {
   uint8_t InputState = 1;
-	InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+	InputState  = HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS));
   if (InputState & IR_TOP_HI) {
     return 1;
   } else {
