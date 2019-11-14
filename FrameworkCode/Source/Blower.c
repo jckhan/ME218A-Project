@@ -173,6 +173,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 		
 		case NotBlowing:
 		{
+			LED_SR_Write(BIT0LO);
+			LED_SR_Write(BIT1LO);
+			LED_SR_Write(BIT2LO);
+			LED_SR_Write(BIT3LO);
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in NotBlowing\n\r");
 				
@@ -180,6 +184,8 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 			}
 			else if (ThisEvent.EventType == BLOWING_START) {
 				printf("BLOWER_START in NotBlowing\n\r");
+				//Init 200ms timer
+				printf("Starting timer (200 ms)...\n\r");
 				
 				// Init 8s timer
 				printf("Starting timer (8s)...\n\r");
@@ -210,6 +216,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					} else if(increment == 3){
 						LED_SR_Write(BIT3HI);
 						increment++;
+						ES_Event_t ThisEvent;
+						ThisEvent.EventType = GAME_COMPLETED;
+						PostBlower(ThisEvent);
+						CurrentState = BlowerStandby;
 					}
 					printf("Incrementing LEDs...\n\r");
 					
@@ -218,29 +228,25 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					
 					CurrentState = Blowing;
 				} else if (ThisEvent.EventParam == 2) {
-					increment = 0;
-					ES_Event_t Event2Post;
-					Event2Post.EventType = GAME_COMPLETED;
-					ES_PostAll(Event2Post);
-					
-					CurrentState = BlowerStandby;
-				}
+
+					CurrentState = NotBlowing;
 			}
-			else if (ThisEvent.EventType == BLOWING_STOP) {
-				printf("BLOWING_STOP in Blowing\n\r");
-				
-				// Turn off all LEDs
-				printf("Turning off all LEDs...\n\r");
-				
-				CurrentState = NotBlowing;
-			}
+//			else if (ThisEvent.EventType == BLOWING_STOP) {
+//				printf("BLOWING_STOP in Blowing\n\r");
+//				
+//				// Turn off all LEDs
+//				printf("Turning off all LEDs...\n\r");
+//				
+//				CurrentState = NotBlowing;
+//			}
 			else if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Blowing\n\r");
 				
 				CurrentState = BlowerStandby;
 			}
-			break;
 		}
+			break;
+	}
 		default:
       ;
   }                                   // end switch on Current State
@@ -274,18 +280,22 @@ BlowerState_t QueryBlower(void)
  ***************************************************************************/
 void BlowerInitialize( void) {
 	// Initialize the input line for the microphone
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT2HI); //Digital Enable PB2 for Mic Input
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT2LO); //set as input
+	LED_SR_Write(BIT0LO);
+	LED_SR_Write(BIT1LO);
+	LED_SR_Write(BIT2LO);
+	LED_SR_Write(BIT3LO);
 }
 
 static uint8_t GetCurrentState( void) {
   uint8_t InputState = 0;
-	/*
   InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
-  if (InputState & BIT7HI) {
+  if (InputState & BIT2HI) {
     return 1;
   } else {
     return 0;
   }
-	*/
 	return InputState;
 }
 
@@ -296,17 +306,9 @@ bool CheckBlowerEvents( void) {
 	uint8_t CurrentBlowerState = GetCurrentState();
 	
 	if (CurrentBlowerState != LastBlowerState) {
-      if (CurrentBlowerState) {
         ES_Event_t ThisEvent;
         ThisEvent.EventType = BLOWING_START;
         PostBlower(ThisEvent);
-      }
-      else {
-        ES_Event_t ThisEvent;
-        ThisEvent.EventType = BLOWING_STOP;
-        PostBlower(ThisEvent);
-      }
-
       ReturnVal = true;
   }
 	
