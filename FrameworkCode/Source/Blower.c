@@ -27,7 +27,7 @@
 #include "ES_Framework.h"
 #include "Blower.h"
 #include "Game.h"
-
+#include "ShiftRegisterWrite.h"
 #include "BITDEFS.H"
 
 // the headers to access the GPIO subsystem
@@ -195,9 +195,22 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in Blowing\n\r");
+				static uint8_t increment = 0;
 				if (ThisEvent.EventParam == 1) {
-					
 					// Increment LEDs
+					if(increment == 0){
+						LED_SR_Write(BIT0HI);
+						increment++;
+					} else if(increment == 1){
+						LED_SR_Write(BIT1HI);
+						increment++;
+					} else if(increment == 2){
+						increment++;
+						LED_SR_Write(BIT2HI);
+					} else if(increment == 3){
+						LED_SR_Write(BIT3HI);
+						increment++;
+					}
 					printf("Incrementing LEDs...\n\r");
 					
 					// Init 2s timer
@@ -205,7 +218,7 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					
 					CurrentState = Blowing;
 				} else if (ThisEvent.EventParam == 2) {
-					
+					increment = 0;
 					ES_Event_t Event2Post;
 					Event2Post.EventType = GAME_COMPLETED;
 					ES_PostAll(Event2Post);
