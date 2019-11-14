@@ -578,11 +578,6 @@
               <FileType>1</FileType>
               <FilePath>.\Source\ShiftRegisterWrite .c</FilePath>
             </File>
-            <File>
-              <FileName>Write.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\Write.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -1406,11 +1401,6 @@
               <FileType>1</FileType>
               <FilePath>.\Source\ShiftRegisterWrite .c</FilePath>
             </File>
-            <File>
-              <FileName>Write.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\Write.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -2233,11 +2223,6 @@
               <FileName>ShiftRegisterWrite .c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\ShiftRegisterWrite .c</FilePath>
-            </File>
-            <File>
-              <FileName>Write.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\Write.c</FilePath>
             </File>
           </Files>
         </Group>

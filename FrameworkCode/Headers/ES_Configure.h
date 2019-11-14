@@ -350,8 +350,8 @@ typedef enum
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
 #define TIMER5_RESP_FUNC PostSpinner
-#define TIMER6_RESP_FUNC TIMER_UNUSED
-#define TIMER7_RESP_FUNC TIMER_UNUSED
+#define TIMER6_RESP_FUNC PostBlower
+#define TIMER7_RESP_FUNC PostBlower
 #define TIMER8_RESP_FUNC TIMER_UNUSED
 #define TIMER9_RESP_FUNC TIMER_UNUSED
 #define TIMER10_RESP_FUNC TIMER_UNUSED
@@ -369,6 +369,8 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define SERVICE0_TIMER 15
+#define BLOWING_TIMER 7
+#define BLOWING_LED_TIMER 6
 
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
