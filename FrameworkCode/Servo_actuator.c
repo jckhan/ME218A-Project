@@ -20,10 +20,13 @@
 #include "driverlib/gpio.h"
 
 #include "PWM16Tiva.h"
+#include "ADMulti.h"
 
 #define TowerProLimLow 650 //Lower Limit of pulse in ticks (1 tick = 0.8 microseconds)
 #define TowerProLimHigh 3000 //Upper Limit of pulse in ticks (1 tick = 0.8 microseconds)
 #define clrScrn() printf("\x1b[2J")
+#define Num_channels 1 
+
 void ServoPinInit(uint8_t HowMany){ //Takes input how many PWM channels we need (Each channel activates two pins [called 'groups'], this is a hardware limitation)
 	PWM_TIVA_Init(HowMany); //Max 16 channels, which is 8 groups, and so only 8 unique PWM PERIODS, but can have 16 unique pulse widths
 } 
@@ -40,6 +43,4 @@ void MotorPWM(uint16_t duty_cycle, uint8_t group, uint8_t channel){ //Duty cycle
 	PWM_TIVA_SetFreq( reqFreq, group);
 	PWM_TIVA_SetDuty(duty_cycle, channel);
 }
-
-
 
