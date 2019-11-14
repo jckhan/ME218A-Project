@@ -148,6 +148,8 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 				
 				if (GameState != PingPong_Completed) {
 					// Init PWM at 0
+					
+//					Fan();
 					printf("Initializing PWM at 0...\n\r");
 					// Init timer 50ms
 					printf("Starting timer (50ms)...\n\r");

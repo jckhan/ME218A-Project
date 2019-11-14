@@ -1,4 +1,4 @@
-#define TEST
+//#define TEST
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -48,9 +48,9 @@ void Fan(void)
 	//storing and assigning period value
 	uint32_t period = 1000;
 
-while(kbhit()!=1)
+//while(kbhit()!=1)
 //use kbhit() in while loop to test
-{
+//{
 		//READ VOLTAGE AT POT OUTPUT
 		ADC_MultiRead(Pot_ConversionResults);
 	
@@ -65,21 +65,21 @@ while(kbhit()!=1)
 	
 		//outputting duty cycle value to tiva
 		PWM_TIVA_SetDuty(duty_cycle,2);
-}
+//}
 
 }
 
-//TEST HARNESS
-#ifdef TEST
-#include "termio.h"
+////TEST HARNESS
+//#ifdef TEST
+//#include "termio.h"
 
-int main(void)
-{
+//int main(void)
+//{
 
-		
-		TERMIO_Init();
-			puts("\r\n In test harness for Module\r\n");
-	Fan();
+//		
+//		TERMIO_Init();
+//			puts("\r\n In test harness for Module\r\n");
+//	Fan();
 
-}
-#endif
+//}
+//#endif
