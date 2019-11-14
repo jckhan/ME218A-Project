@@ -353,7 +353,7 @@ typedef enum
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
 #define TIMER8_RESP_FUNC TIMER_UNUSED
-#define TIMER9_RESP_FUNC TIMER_UNUSED
+#define TIMER9_RESP_FUNC PostPingPong
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
 #define TIMER12_RESP_FUNC TIMER_UNUSED
@@ -368,7 +368,7 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define SERVICE0_TIMER 15
+#define PINGPONG_TIMER 9
 
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on

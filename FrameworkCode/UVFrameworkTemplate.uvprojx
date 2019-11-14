@@ -650,6 +650,16 @@
               <FileType>5</FileType>
               <FilePath>.\Headers\Blower.h</FilePath>
             </File>
+            <File>
+              <FileName>PingPong.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\PingPong.h</FilePath>
+            </File>
+            <File>
+              <FileName>Motor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Motor.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
