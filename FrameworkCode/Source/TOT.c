@@ -27,6 +27,7 @@
 #include "ES_Framework.h"
 #include "TOT.h"
 #include "Servo_Actuator.h"
+
 #include "ES_Port.h"
 #include "termio.h"
 #include "EnablePA25_PB23_PD7_PF0.h"
@@ -307,13 +308,13 @@ bool CheckTOTEvents( void){
       if (CurrentTOTState) {
         ES_Event_t ThisEvent;
         ThisEvent.EventType = TOT_DETECTED;
-        PostTOT(ThisEvent);
+        ES_PostAll(ThisEvent);
         ReturnVal = true;
       }
       else {
         ES_Event_t ThisEvent;
         ThisEvent.EventType = TOT_REMOVED;
-        PostTOT(ThisEvent);
+        ES_PostAll(ThisEvent);
         ReturnVal = true;
       }
 

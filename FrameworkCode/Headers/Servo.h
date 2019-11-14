@@ -28,7 +28,5 @@ bool PostServo(ES_Event_t ThisEvent);
 ES_Event_t RunServo(ES_Event_t ThisEvent);
 ServoState_t QueryServo(void);
 
-void ServoInitialize( void);
-
 #endif 
 

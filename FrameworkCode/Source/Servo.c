@@ -25,19 +25,32 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
+#include "ES_ShortTimer.h"
 #include "Servo.h"
+#include "Servo_actuator.h"
 
 /*----------------------------- Module Defines ----------------------------*/
+#define SERVO_LOW 160
+#define SERVO_HIGH 0
+#define TOTAL_TIME 60000
+#define SHORT_TIME 500
+#define INCREMENTS 120
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
+void ServoInitialize( void);
+void IncrementServo( void);
+void ResetServo( void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static ServoState_t CurrentState;
+static uint16_t NumIncrements = TOTAL_TIME / SHORT_TIME;
+static uint16_t ServoIncrement = (SERVO_HIGH - SERVO_LOW) / INCREMENTS;
+static uint16_t CurrentPosition = SERVO_LOW;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -141,8 +154,12 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				
 				// Init short timer 50ms
 				printf("Starting timer (50ms)...\n\r");
+				ES_Timer_InitTimer(2, SHORT_TIME);
+				
 				// Init long timer 60s
 				printf("Starting timer (60s)...\n\r");
+				ES_Timer_InitTimer(1, TOTAL_TIME);
+				
 				// Start the servo motor
 				printf("Starting servo motor...\n\r");
 				
@@ -157,21 +174,25 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				printf("TOT_REMOVED in ServoRunning\n\r");
 				
 				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				ResetServo();
+				CurrentPosition = SERVO_LOW;
 				
 				CurrentState = ServoStandby;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				if (ThisEvent.EventParam == 1) {
+				//if (ThisEvent.EventParam == 1) {
 					printf("TIMEOUT_SHORT in ServoRunning\n\r");
 					
 					// Increment servo
-					printf("Incrementing servo...\n\r");
+					IncrementServo();
+					
 					// Init short timer 50ms
 					printf("Starting timer (50ms)...\n\r");
+					ES_Timer_InitTimer(2, SHORT_TIME);
 					
 					CurrentState = ServoRunning;
-				}
+				//}
+				/*
 				else if (ThisEvent.EventParam == 2) {
 					printf("TIMEOUT_LONG in ServoRunning\n\r");
 					
@@ -181,15 +202,18 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 					
 					// Return servo to original position
 					printf("Returning servo to original position...\n\r");
+					ResetServo();
 					
 					CurrentState = ServoStandby;
-				}				
+				}	
+*/				
 			}
 			else if (ThisEvent.EventType == RESET) {
 				printf("RESET in ServoRunning\n\r");
 				
 				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				ES_ShortTimerStart(TIMER_A, INTER_CHAR_DELAY);
+				ResetServo();
 				
 				CurrentState = ServoStandby;
 			}
@@ -197,7 +221,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				printf("GAME_COMPLETED in ServoRunning\n\r");
 				
 				// Return servo to original position
-				printf("Returning servo to original position...\n\r");
+				ResetServo();
 				
 				CurrentState = ServoStandby;
 			}
@@ -235,7 +259,21 @@ ServoState_t QueryServo(void)
  private functions
  ***************************************************************************/
 void ServoInitialize( void) {
+	// Initialize the control line for the trapdoor servo
+	ServoPWM(SERVO_LOW,0,1); //This is PB6
+}
+
+void IncrementServo( void) {
 	
-	// Initialize the output line for the servo
-	
+	CurrentPosition += ServoIncrement;
+	if (CurrentPosition <= 180) {
+		printf("Incrementing servo to %d...\n\r", CurrentPosition);
+		ServoPWM(CurrentPosition,0,1);
+	}
+}
+
+void ResetServo( void) {
+	printf("Returning servo to original position...\n\r");
+	CurrentPosition = SERVO_LOW;
+	ServoPWM(SERVO_LOW,0,1);
 }
