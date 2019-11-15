@@ -124,29 +124,29 @@ void LED_SR_Write(uint8_t NewValue){
   HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);
 }
 
-void AUDIO_SR_Write(uint8_t NewValue){
+//void AUDIO_SR_Write(uint8_t NewValue){
 
-  uint8_t BitCounter;
-  LocalRegisterImage = NewValue; // save a local copy
-	uint8_t loopValue = NewValue;
-// lower the register clock
-	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT7LO);
-	for(int i=0; i < 8; i++){
-		if(GET_MSB_IN_LSB(loopValue)){
-			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT5HI);
-			loopValue = loopValue << 1;
-	} else {
-			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT5LO);
-			loopValue = loopValue << 1;
-		}
-		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT6HI);
-		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT6LO);
-}
-	
-// shift out the data while pulsing the serial clock  
-// Isolate the MSB of NewValue, put it into the LSB position and output to port
-// raise SCLK
-// finish looping through bits in NewValue
-// raise the register clock to latch the new data
-  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT7HI);
-}
+//  uint8_t BitCounter;
+//  LocalRegisterImage = NewValue; // save a local copy
+//	uint8_t loopValue = NewValue;
+//// lower the register clock
+//	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT7LO);
+//	for(int i=0; i < 8; i++){
+//		if(GET_MSB_IN_LSB(loopValue)){
+//			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT5HI);
+//			loopValue = loopValue << 1;
+//	} else {
+//			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT5LO);
+//			loopValue = loopValue << 1;
+//		}
+//		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT6HI);
+//		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT6LO);
+//}
+//	
+//// shift out the data while pulsing the serial clock  
+//// Isolate the MSB of NewValue, put it into the LSB position and output to port
+//// raise SCLK
+//// finish looping through bits in NewValue
+//// raise the register clock to latch the new data
+//  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT7HI);
+//}

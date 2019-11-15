@@ -578,11 +578,6 @@
               <FileType>1</FileType>
               <FilePath>.\Source\ShiftRegisterWrite .c</FilePath>
             </File>
-            <File>
-              <FileName>Write.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\Write.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -722,6 +717,11 @@
               <FileName>ShiftRegisterWrite.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ShiftRegisterWrite.h</FilePath>
+            </File>
+            <File>
+              <FileName>Fan.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Fan.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1406,11 +1406,6 @@
               <FileType>1</FileType>
               <FilePath>.\Source\ShiftRegisterWrite .c</FilePath>
             </File>
-            <File>
-              <FileName>Write.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\Write.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -1550,6 +1545,11 @@
               <FileName>ShiftRegisterWrite.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ShiftRegisterWrite.h</FilePath>
+            </File>
+            <File>
+              <FileName>Fan.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Fan.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -2234,11 +2234,6 @@
               <FileType>1</FileType>
               <FilePath>.\Source\ShiftRegisterWrite .c</FilePath>
             </File>
-            <File>
-              <FileName>Write.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\Write.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -2378,6 +2373,11 @@
               <FileName>ShiftRegisterWrite.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ShiftRegisterWrite.h</FilePath>
+            </File>
+            <File>
+              <FileName>Fan.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Fan.h</FilePath>
             </File>
           </Files>
         </Group>
