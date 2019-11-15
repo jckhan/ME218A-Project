@@ -63,7 +63,7 @@ void SR_Init(void){
   // of PB0, PB1 & PB2 to output
   
   // start with the data & sclk lines low and the RCLK line high
-	printf("SR pins initialized");
+	
 }
 
 // Create your own function header comment
@@ -123,6 +123,7 @@ void LED_SR_Write(uint8_t NewValue){
 // finish looping through bits in NewValue
 // raise the register clock to latch the new data
   HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);
+printf("writing %d\n\r", LocalRegisterImage);
 }
 
 //void AUDIO_SR_Write(uint8_t NewValue){

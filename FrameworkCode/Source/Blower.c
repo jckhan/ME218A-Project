@@ -181,7 +181,6 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 		case NotBlowing:
 		{
 			//Switch off LEDs
-			LED_on(0);
 			
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in NotBlowing\n\r");
