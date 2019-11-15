@@ -221,8 +221,8 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					printf("Incrementing LEDs...\n\r");
 					increment++;
 					printf("%d\n\r", increment);
+					
 					LED_on(increment);
-						
 					if(increment == 4){
 						ES_Event_t ThisEvent;
 						ThisEvent.EventType = GAME_COMPLETED;
@@ -244,10 +244,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 				}
 					
 			} else if (ThisEvent.EventType == BLOWING_START) {
-				//printf("BLOWING_START in Blowing\n\r");
+				printf("BLOWING_START in Blowing\n\r");
 				
 				// Restart blowing timer
-				//printf("Restart 200 ms timer...\n\r");
+				printf("Restart 200 ms timer...\n\r");
 				ES_Timer_InitTimer(BLOWING_TIMER, BLOWING_DURATION);			
 			}
 			break;
@@ -295,6 +295,7 @@ void BlowerInitialize( void) {
 	
 	// Turn off all LEDs
 	LED_on(0);
+
 }
 
 // Control the leds by passing in the number of LED to swtich on
@@ -302,14 +303,13 @@ void BlowerInitialize( void) {
 static void LED_on(uint8_t num) {
 	switch (num) {
 		case 0:
-			printf("led0\n\r");
+			printf("Writing LED ZERO\n\r");
 			LED_SR_Write(BIT0LO);
 			LED_SR_Write(BIT1LO);
 			LED_SR_Write(BIT2LO);
 			LED_SR_Write(BIT3LO);
 			break;
 		case 1:
-			printf("led1\n\r");
 			LED_SR_Write(BIT0HI);
 			break;
 		case 2:
