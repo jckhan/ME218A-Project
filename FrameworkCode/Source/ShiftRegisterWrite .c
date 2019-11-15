@@ -72,8 +72,6 @@ void SR_Init(void){
 //}
 
 bool CheckHiLo(uint8_t data){
-	if (BIT1HI & data) {
-	}
 	if((!(BIT1HI & data)) && (!(BIT3HI & data))){
 		return true;
 	} else if(((BIT1HI & data)) && (!(BIT3HI & data))){
@@ -95,13 +93,16 @@ bool CheckHiLo(uint8_t data){
 }
 
 // Create your own function header comment
-void LED_SR_Write(uint8_t NewValue){
 	static uint8_t LocalRegisterImage=0;
+
+void LED_SR_Write(uint8_t NewValue){
+	printf("First Register Image %d\n\r", LocalRegisterImage);
   if(CheckHiLo(NewValue)){
-		LocalRegisterImage = (LocalRegisterImage | NewValue);
+		LocalRegisterImage |= (NewValue);
 	} else {
-		LocalRegisterImage = (LocalRegisterImage & NewValue);
+		LocalRegisterImage &= (NewValue);
 	}
+	printf("Second Register Image %d\n\r", LocalRegisterImage);
 	uint8_t loopValue = LocalRegisterImage;
 // lower the register clock
 	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT4LO);
@@ -122,7 +123,7 @@ void LED_SR_Write(uint8_t NewValue){
 // raise SCLK
 // finish looping through bits in NewValue
 // raise the register clock to latch the new data
-  HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);
+  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);
 printf("writing %d\n\r", LocalRegisterImage);
 }
 

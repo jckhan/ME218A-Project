@@ -295,6 +295,7 @@ void BlowerInitialize( void) {
 	// Turn off all LEDs
 	LED_on(0);
 
+
 }
 
 // Control the leds by passing in the number of LED to swtich on
