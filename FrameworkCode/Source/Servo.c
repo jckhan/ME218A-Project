@@ -262,12 +262,9 @@ void ServoInitialize( void) {
 }
 
 void IncrementServo( void) {
-	
-	
-	
 	CurrentPosition += ServoIncrement;
 	if (CurrentPosition <= 180) {
-		//printf("Incrementing servo to %d...\n\r", CurrentPosition);
+		printf("Incrementing servo to %d...\n\r", CurrentPosition);
 		ServoPWM(CurrentPosition,0,1);
 	}
 }
@@ -275,7 +272,7 @@ void IncrementServo( void) {
 void ResetServo( void) {
 	printf("Returning servo to original position...\n\r");
 	CurrentPosition = SERVO_LOW;
-	//ServoPWM(SERVO_LOW,0,1);
+	ServoPWM(SERVO_LOW,0,1);
 	//ES_Timer_StopTimer(1);
 	ES_Timer_StopTimer(2);
 }
