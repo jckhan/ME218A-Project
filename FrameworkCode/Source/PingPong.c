@@ -175,6 +175,7 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 				printf("Starting timer (3s)...\n\r");
 				ES_Timer_InitTimer(PINGPONG_TIMER, HOLD_TIME);
 				CurrentState = Middle;
+				HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT6HI;
 			}
 			else if (ThisEvent.EventType == FALLING_TOP) {
 				printf("FALLING_TOP in Neutral\n\r");
@@ -182,6 +183,7 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 				printf("Starting timer (3s)...\n\r");
 				ES_Timer_InitTimer(PINGPONG_TIMER, HOLD_TIME);			
 				CurrentState = Top;
+				HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT6HI;
 			}
 			break;
 		}
@@ -200,11 +202,13 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 			else if (ThisEvent.EventType == RISING_MIDDLE) {
 				printf("RISING_MIDDLE in Middle\n\r");
 				CurrentState = Neutral;
+				HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT6LO;
 			}
 			
 			else if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Middle\n\r");
 				CurrentState = PPStandby;
+				HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT6LO;
 			}
 			break;
 		}
@@ -223,11 +227,13 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 			else if (ThisEvent.EventType == RISING_TOP) {
 				printf("RISING_Top in Top\n\r");
 				CurrentState = Neutral;
+				HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT6LO;
 			}
 			
 			else if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Top\n\r");
 				CurrentState = PPStandby;
+				HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT6LO;
 			}
 			break;
 		}
@@ -319,11 +325,14 @@ static void PingPongInitialize( void) {
   {
   }
 
-  // set PB3 and PB4 to be used as digital I/O
-  HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (IR_TOP_HI | IR_MID_HI) ;
+  // set PC4 and PC5 to be used as digital I/O
+  HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (IR_TOP_HI | IR_MID_HI);
+	HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (BIT6HI);
+	
 
   // set PB3 direction to input
   HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= (IR_TOP_LO & IR_MID_LO);
+	HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) |= (BIT6HI);
 }
 
 // Get the pin status of the middle IR
