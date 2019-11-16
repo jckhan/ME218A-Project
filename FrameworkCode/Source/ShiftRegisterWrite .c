@@ -50,6 +50,7 @@
 #define GET_MSB_IN_LSB(x) ((x & 0x80)>>7)
 
 // an image of the last 8 bits written to the shift register
+static uint8_t LocalRegisterImage;
 bool CheckHiLo(uint8_t data);
 
 // Create your own function header comment
