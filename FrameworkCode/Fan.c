@@ -46,7 +46,7 @@ void Fan(void)
 	uint32_t duty_cycle;
 		
 	//storing and assigning period value
-	uint32_t period = 1000;
+	uint32_t period = 925; // PERIOD
 
 while(kbhit()!=1)
 //use kbhit() in while loop to test
@@ -61,7 +61,11 @@ while(kbhit()!=1)
 		PWM_TIVA_SetPeriod(period, 1);
 	
 		//mapping duty cycle to pot output voltage
-		duty_cycle = abs((pot_voltage*(100-1))/4095);
+		duty_cycle = abs((0.20*(pot_voltage)*(100-1))/4095);
+	//10% no lift
+	//25% too much
+	//need a duty cycle range between 10 and 25% mapped to reange of pot outputs
+	//15-20%ideal duty cycle range for period = 1000
 	
 		//outputting duty cycle value to tiva
 		PWM_TIVA_SetDuty(duty_cycle,2);
