@@ -55,12 +55,17 @@ void Fan(uint8_t I)
 	
 		//STORE POT OUTPUT "VOLTAGE VALUE" IN VARIABLE FROM ARRAY
 		pot_voltage = Pot_ConversionResults[0];
-	
+		
+		if((pot_voltage<3000)|(pot_voltage==3000))
+			{}
+	else if((pot_voltage>3000))
+			{pot_voltage=3000;}
 		//SET FREQUENCY
 		PWM_TIVA_SetPeriod(period, 1);
 	
 		//mapping duty cycle to pot output voltage
-		duty_cycle = abs((0.20*(pot_voltage)*(100-1))/4095);
+		duty_cycle = abs((0.4*(pot_voltage)*(100-1))/4095);
+//		printf("duty_cycle = %u",duty_cycle);
 	//10% no lift
 	//25% too much
 	//need a duty cycle range between 10 and 25% mapped to reange of pot outputs
@@ -69,11 +74,14 @@ void Fan(uint8_t I)
 		//outputting duty cycle value to tiva
 		PWM_TIVA_SetDuty(duty_cycle,2);
 //}
+			printf("pot_voltage = %u\r\n",pot_voltage);	
+			printf("duty_cycle = %u\r\n",duty_cycle);
 
 		}
 
 	else if(I == 0)
-		{PWM_TIVA_SetDuty(0,2);
+		{PWM_TIVA_SetPeriod(0, 1);
+			PWM_TIVA_SetDuty(0,2);
 		}
 	
 }

@@ -171,7 +171,7 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in MotorOn\n\r");
-				Fan(0);
+				Fan(1);
 				
 				// Init timer 50ms
 				ES_Timer_InitTimer(4, 50);
