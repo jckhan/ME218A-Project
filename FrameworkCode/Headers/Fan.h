@@ -26,11 +26,9 @@
 #include "PWM16Tiva.h"
 #include "ADMulti.h"
 
-#define INTER_CHAR_DELAY 53
-
 
 //void Fan_pot_control(void);
-void Fan_control(uint8_t duty_cycle);
+void Fan(uint8_t I);
 
 
 

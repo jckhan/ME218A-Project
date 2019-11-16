@@ -147,7 +147,7 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
 				
 				if (GameState != PingPong_Completed) {
-					Fan_pot_control(); //Start PWM
+					Fan(1); //Start PWM
 					printf("Initializing PWM at Pot_value...\n\r");
 					// Init timer 50ms
 					ES_Timer_InitTimer(4, 50);
@@ -164,14 +164,14 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in MotorOn\n\r");
 				
-				Fan_control(0); //Stop PWM
+				Fan(0); //Stop PWM
 				printf("Stopping PWM...\n\r");
 				
 				CurrentState = MotorOff;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in MotorOn\n\r");
-				Fan_pot_control();
+				Fan(0);
 				
 				// Init timer 50ms
 				ES_Timer_InitTimer(4, 50);
@@ -182,7 +182,7 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
 				printf("GAME_COMPLETED in MotorOn\n\r");
 				
-				Fan_control(0); //Stop PWM
+				Fan(0); //Stop PWM
 				printf("Stopping PWM...\n\r");
 				
 				CurrentState = MotorOff;

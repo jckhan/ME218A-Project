@@ -583,6 +583,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Fan_control.c</FilePath>
             </File>
+            <File>
+              <FileName>Fan.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Fan.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1416,6 +1421,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Fan_control.c</FilePath>
             </File>
+            <File>
+              <FileName>Fan.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Fan.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2248,6 +2258,11 @@
               <FileName>Fan_control.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\Fan_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>Fan.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Fan.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,4 +1,4 @@
-#define TEST
+//#define TEST
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -25,11 +25,10 @@
 #include "ADMulti.h"
 #include "Fan.h"
 
-
-void Fan(void);
-
-void Fan(void)
+void Fan(uint8_t I)
 {
+	if (I == 1)
+		{
 	//initialize analog to digital conversion for potentiometer
 	ADC_MultiInit(1);//0-3.3V, PE0
 
@@ -48,9 +47,9 @@ void Fan(void)
 	//storing and assigning period value
 	uint32_t period = 925; // PERIOD
 
-while(kbhit()!=1)
-//use kbhit() in while loop to test
-{
+//while(kbhit()!=1)
+////use kbhit() in while loop to test
+//{
 		//READ VOLTAGE AT POT OUTPUT
 		ADC_MultiRead(Pot_ConversionResults);
 	
@@ -69,8 +68,14 @@ while(kbhit()!=1)
 	
 		//outputting duty cycle value to tiva
 		PWM_TIVA_SetDuty(duty_cycle,2);
-}
+//}
 
+		}
+
+	else if(I == 0)
+		{PWM_TIVA_SetDuty(0,2);
+		}
+	
 }
 
 //TEST HARNESS
