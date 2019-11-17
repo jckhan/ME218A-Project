@@ -190,7 +190,7 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 			else if (ThisEvent.EventType == BLOWING_START) {
 				printf("BLOWER_START in NotBlowing\n\r");
 				//Init 200ms timer
-				printf("Starting timer (200 ms)...\n\r");
+				//printf("Starting timer (200 ms)...\n\r");
 				ES_Timer_InitTimer(BLOWING_TIMER, BLOWING_DURATION);
 				
 				// Init 2s timer
@@ -243,10 +243,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 				}
 					
 			} else if (ThisEvent.EventType == BLOWING_START) {
-				printf("BLOWING_START in Blowing\n\r");
+				//printf("BLOWING_START in Blowing\n\r");
 				
 				// Restart blowing timer
-				printf("Restart 200 ms timer...\n\r");
+				//printf("Restart 200 ms timer...\n\r");
 				ES_Timer_InitTimer(BLOWING_TIMER, BLOWING_DURATION);			
 			}
 			break;
@@ -303,7 +303,7 @@ void BlowerInitialize( void) {
 static void LED_on(uint8_t num) {
 	switch (num) {
 		case 0:
-			printf("Writing LED ZERO\n\r");
+			//printf("Writing LED ZERO\n\r");
 			LED_SR_Write(BIT0LO);
 			LED_SR_Write(BIT1LO);
 			LED_SR_Write(BIT2LO);
