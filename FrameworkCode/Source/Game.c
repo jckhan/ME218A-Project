@@ -173,7 +173,8 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				LEDMiddle(0);
 				// Turn on top LEDs
 				LEDTop(1);
-				
+				AUDIO_SR_Write(BIT3LO);
+				AUDIO_SR_Write(BIT3HI);
 				CurrentState = Level2;
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
@@ -195,7 +196,8 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				LEDTop(0);
 				// Turn on middle LEDs
 				LEDMiddle(1);
-				
+				AUDIO_SR_Write(BIT3LO);
+				AUDIO_SR_Write(BIT3HI);
 				CurrentState = Level3;
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
@@ -224,7 +226,8 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				ES_Event_t Event2Post;
 				Event2Post.EventType = PP_COMPLETED;
 				ES_PostAll(Event2Post);
-				
+				AUDIO_SR_Write(BIT6LO);
+				AUDIO_SR_Write(BIT6HI);
 				CurrentState = PingPong_Completed;
 			}
 			else if (ThisEvent.EventType == END_POTATO) {

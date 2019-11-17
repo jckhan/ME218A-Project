@@ -42,7 +42,7 @@
 #include "driverlib/sysctl.h"
 #include "inc/hw_sysctl.h"
 #include "PWM16Tiva.h"
-
+#include "ShiftRegisterWrite.h"
 /*----------------------------- Module Defines ----------------------------*/
 #define NEXTGAMETIME 1000
 /*---------------------------- Module Functions ---------------------------*/
@@ -165,7 +165,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				ES_PostAll(Event2Post);
 				
 				printf("POTATO started...\n\r");
-				
+				AUDIO_SR_Write(BIT7LO);
+				AUDIO_SR_Write(BIT7HI);
 				// Game timer is started by the servo
 				
 				CurrentState = YesTOT;
@@ -213,6 +214,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				// Open trapdoor to release TOT
 				ReleaseTOT();
+				AUDIO_SR_Write(BIT5LO);
+				AUDIO_SR_Write(BIT5HI);
 				ES_Timer_InitTimer(1, NEXTGAMETIME);
 				CurrentState = Waiting4NextGame;
 			}
@@ -281,6 +284,10 @@ void TOTInitialize( void) {
 	// Initialize the control line for the trapdoor servo
 	ServoPinInit(2); //Need 2 servos, channel 0 will be TOT system, channel 1 will be Timer System [BOTH ARE GROUP 0]
 	ServoPWM(20,0,0); //This is PB6
+	
+	//Set Audio ports high
+	SR_Init();
+	AUDIO_SR_Write(BIT3HI | BIT4HI | BIT5HI | BIT6HI | BIT7HI);
 }
 
 void ReleaseTOT( void) {

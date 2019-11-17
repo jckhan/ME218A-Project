@@ -54,17 +54,21 @@ bool CheckHiLo(uint8_t data);
 
 // Create your own function header comment
 void SR_Init(void){
-	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI;
-	while((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
-	}
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI | BIT2HI);
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT0HI | BIT1HI | BIT2HI);
-	HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT0LO & BIT1LO);
-	HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT2HI);
+
+//	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI | BIT2HI);
+//	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT0HI | BIT1HI | BIT2HI);
+//	HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT0LO & BIT1LO);
+//	HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT2HI);
   // peripheral to be ready and setting the direction
   // of PB0, PB1 & PB2 to output
   
   // start with the data & sclk lines low and the RCLK line high
+	
+	//PA5 (Serial Data), PA6 (Shift Clock), PA7 (Register Clock)
+	HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT5HI | BIT6HI | BIT7HI);
+	HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT5HI | BIT6HI | BIT7HI);
+	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT6LO);
+	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT5HI | BIT7HI); //Start with data line high (Audio triggers when sent low)
 }
 
 // Create your own function header comment
@@ -121,13 +125,17 @@ void LED_SR_Write(uint8_t NewValue){
 // raise SCLK
 // finish looping through bits in NewValue
 // raise the register clock to latch the new data
-  HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);
+  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT4HI);
 }
 
 void AUDIO_SR_Write(uint8_t NewValue){
 
-  uint8_t BitCounter;
-  LocalRegisterImage = NewValue; // save a local copy
+  static uint8_t LocalRegisterImage=0;
+	if(CheckHiLo(NewValue)){
+		LocalRegisterImage = (LocalRegisterImage | NewValue);
+	} else {
+		LocalRegisterImage = (LocalRegisterImage & NewValue);
+	}
 	uint8_t loopValue = NewValue;
 // lower the register clock
 	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT7LO);

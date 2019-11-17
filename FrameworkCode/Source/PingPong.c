@@ -36,6 +36,9 @@
 #include "inc/hw_gpio.h"
 #include "inc/hw_sysctl.h"
 
+
+#include "ShiftRegisterWrite.h"
+
 // the headers to access the TivaWare Library
 #include "driverlib/sysctl.h"
 #include "driverlib/pin_map.h"
@@ -310,7 +313,9 @@ bool CheckPingPongEvents( void) {
         ThisEvent.EventType = FALLING_MIDDLE;
         PostPingPong(ThisEvent);
       }
-
+			AUDIO_SR_Write(BIT4LO);
+			AUDIO_SR_Write(BIT4HI);
+			
       ReturnVal = true;
   }
 	
