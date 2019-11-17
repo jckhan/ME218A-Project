@@ -43,6 +43,7 @@
 #include "PWM16Tiva.h"
 #include "Game.h"
 #include "ShiftRegisterWrite.h"
+#include "Fan.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -217,7 +218,7 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				LEDMiddle(0);
 				// Turn on success LEDs
 				LEDSuccess(1);
-				
+				Fan(0);
 				// Init 3s timer
 				printf("Starting timer (3s)...\n\r");
 				

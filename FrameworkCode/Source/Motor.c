@@ -29,6 +29,7 @@
 #include "Motor.h"
 #include "PWM16Tiva.h"
 #include "Game.h"
+#include "Fan.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -146,9 +147,10 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
 				
 				if (GameState != PingPong_Completed) {
-					// Init PWM at 0
-					printf("Initializing PWM at 0...\n\r");
+					Fan(1); //Start PWM
+					printf("Initializing PWM at Pot_value...\n\r");
 					// Init timer 50ms
+					ES_Timer_InitTimer(4, 50);
 					printf("Starting timer (50ms)...\n\r");
 					
 					CurrentState = MotorOn;
@@ -162,26 +164,33 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in MotorOn\n\r");
 				
-				// Stop PWM
+				Fan(0); //Stop PWM
 				printf("Stopping PWM...\n\r");
 				
 				CurrentState = MotorOff;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in MotorOn\n\r");
-				
-				GetInputSignal();
-				ConvertSignal();
+				//printf("ES_TIMEOUT in MotorOn\n\r");
+				Fan(1);
 				
 				// Init timer 50ms
-				printf("Starting timer (50ms)...\n\r");
+				ES_Timer_InitTimer(4, 50);
+				//printf("Starting timer (50ms)...\n\r");
 				
 				CurrentState = MotorOn;
 			}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
 				printf("GAME_COMPLETED in MotorOn\n\r");
 				
-				// Stop PWM
+				Fan(0); //Stop PWM
+				printf("Stopping PWM...\n\r");
+				
+				CurrentState = MotorOff;
+			}
+			else if (ThisEvent.EventType == PP_COMPLETED) {
+				printf("PP_COMPLETED in MotorOn\n\r");
+				
+				Fan(0); //Stop PWM
 				printf("Stopping PWM...\n\r");
 				
 				CurrentState = MotorOff;
@@ -224,6 +233,7 @@ void MotorInitialize( void) {
 	// Initialize the analog input line
 	
 	// Initialize the output line for the motor
+	PWM_TIVA_Init(3);
 	
 }
 

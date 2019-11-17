@@ -127,9 +127,13 @@ void LED_SR_Write(uint8_t NewValue){
 
 void AUDIO_SR_Write(uint8_t NewValue){
 
-  uint8_t BitCounter;
-  LocalRegisterImage = NewValue; // save a local copy
-	uint8_t loopValue = NewValue;
+  static uint8_t LocalRegisterImage=0;
+  if(CheckHiLo(NewValue)){
+		LocalRegisterImage = (LocalRegisterImage | NewValue);
+	} else {
+		LocalRegisterImage = (LocalRegisterImage & NewValue);
+	}
+	uint8_t loopValue = LocalRegisterImage;
 // lower the register clock
 	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT7LO);
 	for(int i=0; i < 8; i++){
