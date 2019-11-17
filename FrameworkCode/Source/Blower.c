@@ -27,7 +27,7 @@
 #include "ES_Framework.h"
 #include "Blower.h"
 #include "Game.h"
-
+#include "ShiftRegisterWrite.h"
 #include "BITDEFS.H"
 
 // the headers to access the GPIO subsystem
@@ -44,6 +44,11 @@
 #include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
+#define MIC_HI BIT2HI
+#define MIC_LO BIT2LO
+
+#define BLOWING_DURATION 200
+#define TWO_SEC 2000
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -54,7 +59,7 @@
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static BlowerState_t CurrentState;
-static uint8_t LastBlowerState;
+static uint8_t LastMicState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -86,10 +91,12 @@ bool InitBlower(uint8_t Priority)
 	
 	BlowerInitialize();
 	
+	//LED_on(0);
+	
   // put us into the Initial PseudoState
   CurrentState = BlowerStandby;
 	
-	LastBlowerState = GetCurrentState();
+	LastMicState = GetMicState();
 	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
@@ -173,6 +180,8 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 		
 		case NotBlowing:
 		{
+			//Switch off LEDs
+			
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in NotBlowing\n\r");
 				
@@ -180,12 +189,13 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 			}
 			else if (ThisEvent.EventType == BLOWING_START) {
 				printf("BLOWER_START in NotBlowing\n\r");
-				
-				// Init 8s timer
-				printf("Starting timer (8s)...\n\r");
+				//Init 200ms timer
+				//printf("Starting timer (200 ms)...\n\r");
+				ES_Timer_InitTimer(BLOWING_TIMER, BLOWING_DURATION);
 				
 				// Init 2s timer
 				printf("Starting timer (2s)...\n\r");
+				ES_Timer_InitTimer(BLOWING_LED_TIMER, TWO_SEC);
 				
 				CurrentState = Blowing;
 			}
@@ -193,44 +203,57 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 		}
 		case Blowing:
 		{
-			if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in Blowing\n\r");
-				if (ThisEvent.EventParam == 1) {
-					
-					// Increment LEDs
-					printf("Incrementing LEDs...\n\r");
-					
-					// Init 2s timer
-					printf("Starting timer (2s)...\n\r");
-					
-					CurrentState = Blowing;
-				} else if (ThisEvent.EventParam == 2) {
-					
-					ES_Event_t Event2Post;
-					Event2Post.EventType = GAME_COMPLETED;
-					ES_PostAll(Event2Post);
-					
-					CurrentState = BlowerStandby;
-				}
-			}
-			else if (ThisEvent.EventType == BLOWING_STOP) {
-				printf("BLOWING_STOP in Blowing\n\r");
-				
-				// Turn off all LEDs
-				printf("Turning off all LEDs...\n\r");
-				
-				CurrentState = NotBlowing;
-			}
-			else if (ThisEvent.EventType == SPINNER_STOP) {
+			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Blowing\n\r");
 				
+				// Switch off LEDs
+				LED_on(0);
 				CurrentState = BlowerStandby;
+			}
+			else if (ThisEvent.EventType == ES_TIMEOUT) {
+				static uint8_t increment = 0;
+				
+				if (ThisEvent.EventParam == BLOWING_LED_TIMER) {
+					printf("BLOWING_LED_TIMEOUT in Blowing\n\r");
+					
+					// Increment LED on
+					printf("Incrementing LEDs...\n\r");
+					increment++;
+					printf("%d\n\r", increment);
+					
+					LED_on(increment);
+					if(increment == 4){
+						ES_Event_t ThisEvent;
+						ThisEvent.EventType = GAME_COMPLETED;
+						ES_PostAll(ThisEvent);
+						CurrentState = BlowerStandby;
+					}
+
+					// Restart 2s LED timer
+					printf("Starting timer (2s)...\n\r");
+					ES_Timer_InitTimer(BLOWING_LED_TIMER, TWO_SEC);
+					
+				} else if (ThisEvent.EventParam == BLOWING_TIMER) {
+					printf("BLOWING_TIMEOUT in Blowing\n\r");
+					// Reset and switch off LEDs
+					increment = 0;
+					LED_on(0);
+					
+					CurrentState = NotBlowing;
+				}
+					
+			} else if (ThisEvent.EventType == BLOWING_START) {
+				//printf("BLOWING_START in Blowing\n\r");
+				
+				// Restart blowing timer
+				//printf("Restart 200 ms timer...\n\r");
+				ES_Timer_InitTimer(BLOWING_TIMER, BLOWING_DURATION);			
 			}
 			break;
 		}
 		default:
-      ;
-  }                                   // end switch on Current State
+      break;
+  }
   return ReturnEvent;
 }
 
@@ -259,45 +282,77 @@ BlowerState_t QueryBlower(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
+// Initialize the input line for the microphone
 void BlowerInitialize( void) {
-	// Initialize the input line for the microphone
+	// set up port B by enabling the peripheral clock,
+	SR_Init();
+  // set PB42 to be used as digital I/O
+  HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= MIC_HI;
+
+  // set PB2 direction to input
+  HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= MIC_LO;
+	
+	// Turn off all LEDs
+	LED_on(0);
+
+
 }
 
-static uint8_t GetCurrentState( void) {
+// Control the leds by passing in the number of LED to swtich on
+// 0 turns all LEDs off
+static void LED_on(uint8_t num) {
+	switch (num) {
+		case 0:
+			//printf("Writing LED ZERO\n\r");
+			LED_SR_Write(BIT0LO);
+			LED_SR_Write(BIT1LO);
+			LED_SR_Write(BIT2LO);
+			LED_SR_Write(BIT3LO);
+			break;
+		case 1:
+			LED_SR_Write(BIT0HI);
+			break;
+		case 2:
+			LED_SR_Write(BIT1HI);
+			break;
+		case 3:
+			LED_SR_Write(BIT2HI);
+			break;
+		case 4:
+			LED_SR_Write(BIT3HI);
+			break;
+		default:
+			break;
+	}
+}
+
+// Gets the current state of the mic pin
+static uint8_t GetMicState( void) {
   uint8_t InputState = 0;
-	/*
   InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
-  if (InputState & BIT7HI) {
+  if (InputState & MIC_HI) {
     return 1;
   } else {
     return 0;
   }
-	*/
-	return InputState;
 }
 
+// Blower event checker
+// Returns true if there are falling and rising edges
 bool CheckBlowerEvents( void) {
 	
 	bool ReturnVal = false;
 
-	uint8_t CurrentBlowerState = GetCurrentState();
+	uint8_t CurrentMicState = GetMicState();
 	
-	if (CurrentBlowerState != LastBlowerState) {
-      if (CurrentBlowerState) {
-        ES_Event_t ThisEvent;
-        ThisEvent.EventType = BLOWING_START;
-        PostBlower(ThisEvent);
-      }
-      else {
-        ES_Event_t ThisEvent;
-        ThisEvent.EventType = BLOWING_STOP;
-        PostBlower(ThisEvent);
-      }
-
+	if (CurrentMicState != LastMicState) {
+			ES_Event_t ThisEvent;
+			ThisEvent.EventType = BLOWING_START;
+			PostBlower(ThisEvent);
       ReturnVal = true;
   }
 	
-  LastBlowerState = CurrentBlowerState;
+  LastMicState = CurrentMicState;
   return ReturnVal;
 	
 }
