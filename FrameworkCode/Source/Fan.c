@@ -25,12 +25,20 @@
 #include "ADMulti.h"
 #include "Fan.h"
 
+
+#define RESTRICT_POT 3000 //max output value for pot
+#define BASE_PULSE_WIDTH 240 //max output value for pot
+#define MAX_POT_OUTPUT 4095 //max output value for pot
+#define PULSE_WIDTH_RANGE 20 //max output value for pot
+#define POT_CHANNEL 1 //max output value for pot
+#define FAN_CHANNEL 2 //max output value for pot
+#define FAN_GROUP 1 //max output value for pot
 void Fan(uint8_t I)
 {
 	if (I == 1)
 		{
 	//initialize analog to digital conversion for potentiometer
-	ADC_MultiInit(1);//0-3.3V, PE0
+	ADC_MultiInit(POT_CHANNEL);//0-3.3V, PE0
 
 	//array to store output from pot at pin PE0; Values between 0 and 4095 corresponding to low to high voltage output values
 	uint32_t Pot_ConversionResults[1];
@@ -42,10 +50,13 @@ void Fan(uint8_t I)
 	uint32_t pot_voltage;
 
 	//variable to map to pot voltage output
-	uint32_t duty_cycle;
-		
+//	uint32_t duty_cycle;
+			
+	uint32_t pulse_width;
 	//storing and assigning period value
-	uint32_t period = 925; // PERIOD
+	uint32_t period = 1000; // PERIOD
+			
+			
 
 //while(kbhit()!=1)
 ////use kbhit() in while loop to test
@@ -56,15 +67,19 @@ void Fan(uint8_t I)
 		//STORE POT OUTPUT "VOLTAGE VALUE" IN VARIABLE FROM ARRAY
 		pot_voltage = Pot_ConversionResults[0];
 		
-		if((pot_voltage<3000)|(pot_voltage==3000))
-			{}
-	else if((pot_voltage>3000))
-			{pot_voltage=3000;}
-		//SET FREQUENCY
-		PWM_TIVA_SetPeriod(period, 1);
+//		if((pot_voltage<RESTRICT_POT)|(pot_voltage==RESTRICT_POT))
+//			{}
+//	else if((pot_voltage>RESTRICT_POT))
+//			{pot_voltage=RESTRICT_POT;}
+//		//SET FREQUENCY
+		PWM_TIVA_SetPeriod(period, FAN_GROUP);
 	
 		//mapping duty cycle to pot output voltage
-		duty_cycle = abs((0.4*(pot_voltage)*(100-1))/4095);
+//		duty_cycle = abs((0.4*(pot_voltage)*(100-1))/4095);
+			
+			//pulse_width = abs((0.4*(pot_voltage)*(1000-1))/4095);
+			pulse_width = abs(BASE_PULSE_WIDTH+ pot_voltage*(double)((double)(PULSE_WIDTH_RANGE)/(double)MAX_POT_OUTPUT));
+			
 //		printf("duty_cycle = %u",duty_cycle);
 	//10% no lift
 	//25% too much
@@ -72,16 +87,20 @@ void Fan(uint8_t I)
 	//15-20%ideal duty cycle range for period = 1000
 	
 		//outputting duty cycle value to tiva
-		PWM_TIVA_SetDuty(duty_cycle,2);
+//		PWM_TIVA_SetDuty(duty_cycle,2);
+//			
+			
+			PWM_TIVA_SetPulseWidth( pulse_width,FAN_CHANNEL);
 //}
-			printf("pot_voltage = %u\r\n",pot_voltage);	
-			printf("duty_cycle = %u\r\n",duty_cycle);
+//			printf("pot_voltage = %u\r\n",pot_voltage);	
+////			printf("duty_cycle = %u\r\n",duty_cycle);
+//			printf("pulse_width = %u\r\n",pulse_width);
 
 		}
 
 	else if(I == 0)
-		{PWM_TIVA_SetPeriod(0, 1);
-			PWM_TIVA_SetDuty(0,2);
+		{PWM_TIVA_SetPeriod(0, FAN_GROUP);
+			PWM_TIVA_SetDuty(0,FAN_CHANNEL);
 		}
 	
 }

@@ -170,17 +170,25 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 				CurrentState = MotorOff;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in MotorOn\n\r");
+				//printf("ES_TIMEOUT in MotorOn\n\r");
 				Fan(1);
 				
 				// Init timer 50ms
 				ES_Timer_InitTimer(4, 50);
-				printf("Starting timer (50ms)...\n\r");
+				//printf("Starting timer (50ms)...\n\r");
 				
 				CurrentState = MotorOn;
 			}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
 				printf("GAME_COMPLETED in MotorOn\n\r");
+				
+				Fan(0); //Stop PWM
+				printf("Stopping PWM...\n\r");
+				
+				CurrentState = MotorOff;
+			}
+			else if (ThisEvent.EventType == PP_COMPLETED) {
+				printf("PP_COMPLETED in MotorOn\n\r");
 				
 				Fan(0); //Stop PWM
 				printf("Stopping PWM...\n\r");
