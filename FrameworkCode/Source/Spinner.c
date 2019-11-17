@@ -42,6 +42,10 @@
 #include "driverlib/timer.h"
 #include "driverlib/interrupt.h"
 
+#include "PWM16Tiva.h"
+#include "ADMulti.h"
+#include "Fan.h"
+
 /*----------------------------- Module Defines ----------------------------*/
 #define MAYBESPINNING_TIME 	100
 #define SPINNING_TIME				200
