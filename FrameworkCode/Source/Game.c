@@ -173,8 +173,14 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				LEDMiddle(0);
 				// Turn on top LEDs
 				LEDTop(1);
-				
+				AUDIO_SR_Write(BIT3LO);
+				ES_Timer_InitTimer(10,140); //Audio Timer
 				CurrentState = Level2;
+			}
+			else if(ThisEvent.EventType == ES_TIMEOUT){
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT3HI);
+				}
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
 				printf("END_POTATO in Level1\n\r");
@@ -195,8 +201,14 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				LEDTop(0);
 				// Turn on middle LEDs
 				LEDMiddle(1);
-				
+				AUDIO_SR_Write(BIT3LO);
+				ES_Timer_InitTimer(10,140);
 				CurrentState = Level3;
+			}
+			else if(ThisEvent.EventType == ES_TIMEOUT){
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT3HI);
+				}
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
 				printf("END_POTATO in Level2\n\r");
@@ -224,8 +236,15 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				ES_Event_t Event2Post;
 				Event2Post.EventType = PP_COMPLETED;
 				ES_PostAll(Event2Post);
+				AUDIO_SR_Write(BIT6LO);
 				
+				ES_Timer_InitTimer(10,140);
 				CurrentState = PingPong_Completed;
+			}
+			else if(ThisEvent.EventType == ES_TIMEOUT){
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT6HI);
+				}
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
 				printf("END_POTATO in Level3\n\r");
@@ -241,11 +260,15 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in PingPong_Completed\n\r");
-				
+					if(ThisEvent.EventParam == 10){
+						AUDIO_SR_Write(BIT6HI);
+				}
+					else if(ThisEvent.EventParam == 8){
 				// Turn off success LEDs
 				LEDSuccess(0);
 				
 				CurrentState = PingPong_Completed;
+					}
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
 				printf("END_POTATO in PingPong_Completed\n\r");

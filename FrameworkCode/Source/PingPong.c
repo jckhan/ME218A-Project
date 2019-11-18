@@ -36,6 +36,9 @@
 #include "inc/hw_gpio.h"
 #include "inc/hw_sysctl.h"
 
+
+#include "ShiftRegisterWrite.h"
+
 // the headers to access the TivaWare Library
 #include "driverlib/sysctl.h"
 #include "driverlib/pin_map.h"
@@ -44,21 +47,11 @@
 #include "driverlib/interrupt.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define IR_TOP_HI BIT5HI
-#define IR_TOP_LO BIT5LO
-#define IR_MID_HI BIT4HI
-#define IR_MID_LO BIT4LO
-
-#define HOLD_TIME 3000
-
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-static void PingPongInitialize( void);
-static uint8_t GetIRMiddle( void);
-static uint8_t GetIRTop( void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -73,7 +66,7 @@ static uint8_t MyPriority;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
-     InitPingPong
+     InitTemplateFSM
 
  Parameters
      uint8_t : the priorty of this service
@@ -87,29 +80,37 @@ static uint8_t MyPriority;
  Notes
 
  Author
-     M.Swai, 11/11/19, 22:08
+     J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
 bool InitPingPong(uint8_t Priority)
 {
+  ES_Event_t ThisEvent;
+
   MyPriority = Priority;
 	
-	// Initialize hardware ports
 	PingPongInitialize();
 	
-  // Put us into the Initial PseudoState
+  // put us into the Initial PseudoState
   CurrentState = PPStandby;
 	
-	// Get the current state of the pins
 	LastMiddleState = GetIRMiddle();
 	LastTopState = GetIRTop();
 	
-	return true;
+  // post the initial transition event
+  ThisEvent.EventType = ES_INIT;
+  if (ES_PostToService(MyPriority, ThisEvent) == true)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
-
 
 /****************************************************************************
  Function
-     PostPingPong
+     PostTemplateFSM
 
  Parameters
      EF_Event_t ThisEvent , the event to post to the queue
@@ -122,17 +123,16 @@ bool InitPingPong(uint8_t Priority)
  Notes
 
  Author
-     M.Swai, 11/11/19, 22:31
+     J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
 bool PostPingPong(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
 
-
 /****************************************************************************
  Function
-    RunPingPong
+    RunTemplateFSM
 
  Parameters
    ES_Event_t : the event to process
@@ -141,11 +141,11 @@ bool PostPingPong(ES_Event_t ThisEvent)
    ES_Event_t, ES_NO_EVENT if no error ES_ERROR otherwise
 
  Description
-   
+   add your description here
  Notes
    uses nested switch/case to implement the machine.
  Author
-   M.swai, 11/11/19, 23:17
+   J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
 ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 {
@@ -156,8 +156,14 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
   {
 		case PPStandby:
 		{
-			if (ThisEvent.EventType == SPINNER_START) {
+			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
+      {
+        CurrentState = PPStandby;
+				break;
+      }
+			else if (ThisEvent.EventType == SPINNER_START) {
 				printf("SPINNER_START in PPStandby\n\r");
+				
 				CurrentState = Neutral;
 			}
 			break;
@@ -167,105 +173,149 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Neutral\n\r");
+				
 				CurrentState = PPStandby;
 			}
 			else if (ThisEvent.EventType == FALLING_MIDDLE) {
 				printf("FALLING_MIDDLE in Neutral\n\r");
+				
 				// Init 3s timer
 				printf("Starting timer (3s)...\n\r");
-				ES_Timer_InitTimer(PINGPONG_TIMER, HOLD_TIME);
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Middle;
 			}
 			else if (ThisEvent.EventType == FALLING_TOP) {
 				printf("FALLING_TOP in Neutral\n\r");
+				
 				// Init 3s timer
 				printf("Starting timer (3s)...\n\r");
-				ES_Timer_InitTimer(PINGPONG_TIMER, HOLD_TIME);			
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Top;
+			}
+			else if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Top\n\r");
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT4HI);
+				}
 			}
 			break;
 		}
-		
 		case Middle:
 		{
-			if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == PINGPONG_TIMER) {
-				printf("ES_TIMEOUT in Middle\n\r");
-				ES_Event_t Event2Post;
-				Event2Post.EventType = POS_MIDDLE;
-				PostGame(Event2Post);
+			if (ThisEvent.EventType == ES_TIMEOUT) {
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT4HI);
+				}
+				else if(ThisEvent.EventParam == 9){
+					printf("ES_TIMEOUT in Middle\n\r");
 				
-				CurrentState = Middle;
+					ES_Event_t Event2Post;
+					Event2Post.EventType = POS_MIDDLE;
+					PostGame(Event2Post);
+				
+					CurrentState = Middle;
+				}
 			}
-			
 			else if (ThisEvent.EventType == RISING_MIDDLE) {
 				printf("RISING_MIDDLE in Middle\n\r");
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Neutral;
 			}
-			
 			else if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Middle\n\r");
+
 				CurrentState = PPStandby;
 			}
 			break;
 		}
-		
 		case Top:
 		{
-			if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == PINGPONG_TIMER) {
+			if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in Top\n\r");
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT4HI);
+				}
+				else if(ThisEvent.EventParam == 9){
 				ES_Event_t Event2Post;
 				Event2Post.EventType = POS_TOP;
 				PostGame(Event2Post);
 				
 				CurrentState = Top;
+				}
 			}
-			
 			else if (ThisEvent.EventType == RISING_TOP) {
 				printf("RISING_Top in Top\n\r");
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Neutral;
 			}
-			
 			else if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Top\n\r");
+				
 				CurrentState = PPStandby;
 			}
 			break;
 		}
-		
-		default:
-			break;
-  }
-	
+				default:
+      ;
+  }                                   // end switch on Current State
   return ReturnEvent;
 }
 
 /****************************************************************************
  Function
-     QueryPingPong
+     QueryTemplateSM
 
  Parameters
      None
 
  Returns
-     PingPongState_t The current state of the PingPongSM
+     TemplateState_t The current state of the Template state machine
 
  Description
-     returns the current state of the PingPongSM
+     returns the current state of the Template state machine
  Notes
 
  Author
-     M.Swai, 11/11/19, 22:29
+     J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
 PingPongState_t QueryPingPong(void)
 {
   return CurrentState;
 }
 
+/***************************************************************************
+ private functions
+ ***************************************************************************/
+void PingPongInitialize( void) {
+	// Initialize the input lines to check for the middle and top IR LEDs
+}
 
-// Event Checker for PingPong IRs
+static uint8_t GetIRMiddle( void) {
+  uint8_t InputState = 1;
+	/*
+  InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT7HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+	*/
+	return InputState;
+}
+
+static uint8_t GetIRTop( void) {
+  uint8_t InputState = 1;
+
+	return InputState;
+}
+
 bool CheckPingPongEvents( void) {
-	bool ReturnVal = false;
 	
+	bool ReturnVal = false;
 	// Sample the middle IR line
 	uint8_t CurrentMiddleState = GetIRMiddle();
 	// Sample the top IR line
@@ -282,6 +332,9 @@ bool CheckPingPongEvents( void) {
         ThisEvent.EventType = FALLING_MIDDLE;
         PostPingPong(ThisEvent);
       }
+			
+			ES_Timer_InitTimer(10, 140);
+			
       ReturnVal = true;
   }
 	
@@ -296,6 +349,7 @@ bool CheckPingPongEvents( void) {
         ThisEvent.EventType = FALLING_TOP;
         PostPingPong(ThisEvent);
       }
+			
       ReturnVal = true;
   }
 	
@@ -303,49 +357,6 @@ bool CheckPingPongEvents( void) {
 	LastTopState = CurrentTopState;
   return ReturnVal;
 	
-}
-
-/***************************************************************************
- private functions
- ***************************************************************************/
-
-// Initialize the input lines to check for the middle and top IR LEDs
-static void PingPongInitialize( void) {
-	// set up port C by enabling the peripheral clock,
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2;
-
-  //wait for the clock to be ready
-  while ( (HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2 )
-  {
-  }
-
-  // set PB3 and PB4 to be used as digital I/O
-  HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (IR_TOP_HI | IR_MID_HI) ;
-
-  // set PB3 direction to input
-  HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= (IR_TOP_LO & IR_MID_LO);
-}
-
-// Get the pin status of the middle IR
-static uint8_t GetIRMiddle( void) {
-  uint8_t InputState;
-  InputState  = HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS));
-  if (InputState & IR_MID_HI) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-// Get the pin status of the top IR
-static uint8_t GetIRTop( void) {
-  uint8_t InputState = 1;
-	InputState  = HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS));
-  if (InputState & IR_TOP_HI) {
-    return 1;
-  } else {
-    return 0;
-  }
 }
 
 
