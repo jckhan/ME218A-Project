@@ -174,10 +174,10 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 		case Waiting4Pulse:
 		{
 			if (ThisEvent.EventType == PULSE_DETECTED) {
-				printf("PULSE_DETECTED in Waiting4Pulse\n\r");
+				//printf("PULSE_DETECTED in Waiting4Pulse\n\r");
 				
 				// Init 200ms timer
-				printf("Starting timer (200ms)...\n\r");
+				//printf("Starting timer (200ms)...\n\r");
 				ES_Timer_InitTimer(5, MAYBESPINNING_TIME);
 				
 				CurrentState = MaybeSpinning;
@@ -196,10 +196,10 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 		case MaybeSpinning:
 		{
 			if (ThisEvent.EventType == PULSE_DETECTED) {
-				printf("PULSE_DETECTED in MaybeSpinning\n\r");
+				//printf("PULSE_DETECTED in MaybeSpinning\n\r");
 				
 				// Init 100ms timer
-				printf("Starting timer (100ms)...\n\r");
+				//printf("Starting timer (100ms)...\n\r");
 				ES_Timer_InitTimer(5, SPINNING_TIME);
 				
 				ES_Event_t Event2Post;
@@ -227,7 +227,7 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 		case Spinning:
 		{
 			if (ThisEvent.EventType == PULSE_DETECTED) {
-				printf("PULSE_DETECTED in Spinning\n\r");
+				//printf("PULSE_DETECTED in Spinning\n\r");
 				
 				// Init the 200ms timer
 				ES_Timer_InitTimer(5, SPINNING_TIME);

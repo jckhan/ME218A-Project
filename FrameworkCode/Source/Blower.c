@@ -173,6 +173,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 				GameState_t GameState = QueryGame();
 				if (GameState == PingPong_Completed) {
 					printf("SPINNER_START in BlowerStandby\n\r");
+					
+					// Turn off all LEDs
+					LED_on(0);
+					
 					CurrentState = NotBlowing;
 				}				
 			}
@@ -304,10 +308,6 @@ void BlowerInitialize( void) {
 
   // set PB2 direction to input
   HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= MIC_LO;
-	
-	// Turn off all LEDs
-	LED_on(0);
-
 
 }
 

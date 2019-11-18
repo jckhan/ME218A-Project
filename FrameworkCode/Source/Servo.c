@@ -180,7 +180,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				//if (ThisEvent.EventParam == 1) {
-					printf("TIMEOUT_SHORT in ServoRunning\n\r");
+					//printf("TIMEOUT_SHORT in ServoRunning\n\r");
 					
 					// Increment servo
 					IncrementServo();

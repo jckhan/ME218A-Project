@@ -27,7 +27,7 @@
 
 
 #define RESTRICT_POT 3000 //max output value for pot
-#define BASE_PULSE_WIDTH 240 //max output value for pot
+#define BASE_PULSE_WIDTH 260 //max output value for pot
 #define MAX_POT_OUTPUT 4095 //max output value for pot
 #define PULSE_WIDTH_RANGE 20 //max output value for pot
 #define POT_CHANNEL 1 //max output value for pot
@@ -78,7 +78,7 @@ void Fan(uint8_t I)
 //		duty_cycle = abs((0.4*(pot_voltage)*(100-1))/4095);
 			
 			//pulse_width = abs((0.4*(pot_voltage)*(1000-1))/4095);
-			pulse_width = abs(BASE_PULSE_WIDTH+ pot_voltage*(double)((double)(PULSE_WIDTH_RANGE)/(double)MAX_POT_OUTPUT));
+			pulse_width = abs( BASE_PULSE_WIDTH + pot_voltage*(double)((double)(PULSE_WIDTH_RANGE)/(double)MAX_POT_OUTPUT) );
 			
 //		printf("duty_cycle = %u",duty_cycle);
 	//10% no lift

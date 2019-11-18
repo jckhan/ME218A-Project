@@ -248,6 +248,11 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				}
 				else if (ThisEvent.EventParam == 1){
 					ServoPWM(0,0,0);
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT4HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT6HI);
+					AUDIO_SR_Write(BIT7HI);
 					printf("ES_TIMEOUT in Waiting4NextGame \n\r");
 					CurrentState = NoTOT;
 				}

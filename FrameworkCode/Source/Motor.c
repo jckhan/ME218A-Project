@@ -144,7 +144,7 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 				printf("SPINNER_START in MotorOff\n\r");
 				
 				// Replace this with the queried state of Game_SM
-				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
+				GameState_t GameState = QueryGame(); //  
 				
 				if (GameState != PingPong_Completed) {
 					Fan(1); //Start PWM

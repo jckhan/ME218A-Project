@@ -237,6 +237,7 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				Event2Post.EventType = PP_COMPLETED;
 				ES_PostAll(Event2Post);
 				AUDIO_SR_Write(BIT6LO);
+				printf("Turning on success sound\n\r");
 				
 				ES_Timer_InitTimer(10,140);
 				CurrentState = PingPong_Completed;
@@ -262,6 +263,7 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				printf("ES_TIMEOUT in PingPong_Completed\n\r");
 					if(ThisEvent.EventParam == 10){
 						AUDIO_SR_Write(BIT6HI);
+						printf("Wrote success sound high\n\r");
 				}
 					else if(ThisEvent.EventParam == 8){
 				// Turn off success LEDs
