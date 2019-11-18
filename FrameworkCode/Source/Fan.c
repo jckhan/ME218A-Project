@@ -93,7 +93,7 @@ void Fan(uint8_t I)
 			PWM_TIVA_SetPulseWidth( pulse_width,FAN_CHANNEL);
 //}
 //			printf("pot_voltage = %u\r\n",pot_voltage);	
-////			printf("duty_cycle = %u\r\n",duty_cycle);
+//			printf("duty_cycle = %u\r\n",duty_cycle);
 //			printf("pulse_width = %u\r\n",pulse_width);
 
 		}

@@ -312,7 +312,7 @@ ES_Event_t RunKeyMapper(ES_Event_t ThisEvent)
 			case '6':
 			{
 				Event2Post.EventType = ES_TIMEOUT;
-				Event2Post.EventParam = 1;
+				Event2Post.EventParam = BLOWING_LED_TIMER;
 				PostBlower(Event2Post);
 				break;
 			}
