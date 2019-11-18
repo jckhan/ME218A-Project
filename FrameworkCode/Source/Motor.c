@@ -1,6 +1,6 @@
 /****************************************************************************
  Module
-   Motor.c
+   TemplateFSM.c
 
  Revision
    1.0.1
@@ -29,6 +29,7 @@
 #include "Motor.h"
 #include "PWM16Tiva.h"
 #include "Game.h"
+#include "Fan.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 
@@ -36,10 +37,6 @@
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-// Change the parameters for these prototypes are you write them
-void MotorInitialize( void);
-void GetInputSignal( void);
-void ConvertSignal( void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -52,7 +49,7 @@ static uint8_t MyPriority;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
-     InitMotor
+     InitTemplateFSM
 
  Parameters
      uint8_t : the priorty of this service
@@ -66,19 +63,28 @@ static uint8_t MyPriority;
  Notes
 
  Author
-     M.Swai, 11/11/19, 23:47
+     J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
 bool InitMotor(uint8_t Priority)
 {
+  ES_Event_t ThisEvent;
+
   MyPriority = Priority;
 	
 	MotorInitialize();
 	
   // put us into the Initial PseudoState
   CurrentState = MotorOff;
-	
-	return true;
-  
+  // post the initial transition event
+  ThisEvent.EventType = ES_INIT;
+  if (ES_PostToService(MyPriority, ThisEvent) == true)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 /****************************************************************************
@@ -129,16 +135,22 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
   {
 		case MotorOff:
 		{
-			if (ThisEvent.EventType == SPINNER_START) {
+			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
+      {
+        CurrentState = MotorOff;
+				break;
+      }
+			else if (ThisEvent.EventType == SPINNER_START) {
 				printf("SPINNER_START in MotorOff\n\r");
 				
 				// Replace this with the queried state of Game_SM
 				GameState_t GameState = QueryGame(); //  <== REPLACE THIS!!!
 				
 				if (GameState != PingPong_Completed) {
-					// Init PWM at 0
-					printf("Initializing PWM at 0...\n\r");
+					Fan(1); //Start PWM
+					printf("Initializing PWM at Pot_value...\n\r");
 					// Init timer 50ms
+					ES_Timer_InitTimer(4, 50);
 					printf("Starting timer (50ms)...\n\r");
 					
 					CurrentState = MotorOn;
@@ -152,26 +164,33 @@ ES_Event_t RunMotor(ES_Event_t ThisEvent)
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in MotorOn\n\r");
 				
-				// Stop PWM
+				Fan(0); //Stop PWM
 				printf("Stopping PWM...\n\r");
 				
 				CurrentState = MotorOff;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in MotorOn\n\r");
-				
-				GetInputSignal();
-				ConvertSignal();
+				//printf("ES_TIMEOUT in MotorOn\n\r");
+				Fan(1);
 				
 				// Init timer 50ms
-				printf("Starting timer (50ms)...\n\r");
+				ES_Timer_InitTimer(4, 50);
+				//printf("Starting timer (50ms)...\n\r");
 				
 				CurrentState = MotorOn;
 			}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
 				printf("GAME_COMPLETED in MotorOn\n\r");
 				
-				// Stop PWM
+				Fan(0); //Stop PWM
+				printf("Stopping PWM...\n\r");
+				
+				CurrentState = MotorOff;
+			}
+			else if (ThisEvent.EventType == PP_COMPLETED) {
+				printf("PP_COMPLETED in MotorOn\n\r");
+				
+				Fan(0); //Stop PWM
 				printf("Stopping PWM...\n\r");
 				
 				CurrentState = MotorOff;
@@ -211,9 +230,10 @@ MotorState_t QueryMotor(void)
  ***************************************************************************/
 void MotorInitialize( void) {
 	
-	// Initialize the analog input line on port B by enabling the peripheral clock,
-
+	// Initialize the analog input line
 	
+	// Initialize the output line for the motor
+	PWM_TIVA_Init(3);
 	
 }
 
