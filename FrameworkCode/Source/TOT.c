@@ -163,10 +163,12 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				ES_Event_t Event2Post;
 				Event2Post.EventType = START_POTATO;
 				ES_PostAll(Event2Post);
+				AUDIO_SR_Write(BIT7LO);
+				ES_Timer_InitTimer(10, 140);
 				
 				printf("POTATO started...\n\r");
-				AUDIO_SR_Write(BIT7LO);
-				AUDIO_SR_Write(BIT7HI);
+				
+		
 				// Game timer is started by the servo
 				
 				CurrentState = YesTOT;
@@ -191,18 +193,22 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("TIMEOUT in YesTOT\n\r");
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT7HI);
+				}
+				else if(ThisEvent.EventParam == 1){
+					ES_Event_t Event2Post;
+					Event2Post.EventType = END_POTATO;
+					ES_PostAll(Event2Post);
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = END_POTATO;
-				ES_PostAll(Event2Post);
-				
-				printf("POTATO ended...\n\r");
+					printf("POTATO ended...\n\r");
 				
 				// Open trapdoor to release TOT
-				ReleaseTOT();
-				ES_Timer_InitTimer(1, NEXTGAMETIME);
-				CurrentState = Waiting4NextGame;
-			}
+					ReleaseTOT();
+					ES_Timer_InitTimer(1, NEXTGAMETIME);
+					CurrentState = Waiting4NextGame;
+				}
+				}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
 				printf("GAME_COMPLETED in YesTOT\n\r");
 				
@@ -215,7 +221,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				// Open trapdoor to release TOT
 				ReleaseTOT();
 				AUDIO_SR_Write(BIT5LO);
-				AUDIO_SR_Write(BIT5HI);
+				ES_Timer_InitTimer(10, 140);
+				
 				ES_Timer_InitTimer(1, NEXTGAMETIME);
 				CurrentState = Waiting4NextGame;
 			}
@@ -236,9 +243,14 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 		case Waiting4NextGame:
 		{
 			if(ThisEvent.EventType == ES_TIMEOUT){
-				ServoPWM(0,0,0);
-				printf("ES_TIMEOUT in Waiting4NextGame \n\r");
-				CurrentState = NoTOT;
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT5HI);
+				}
+				else if (ThisEvent.EventParam == 1){
+					ServoPWM(0,0,0);
+					printf("ES_TIMEOUT in Waiting4NextGame \n\r");
+					CurrentState = NoTOT;
+				}
 			}
 			break;
 		}
@@ -287,7 +299,11 @@ void TOTInitialize( void) {
 	
 	//Set Audio ports high
 	SR_Init();
-	AUDIO_SR_Write(BIT3HI | BIT4HI | BIT5HI | BIT6HI | BIT7HI);
+	AUDIO_SR_Write(BIT3HI);
+	AUDIO_SR_Write(BIT4HI);
+	AUDIO_SR_Write(BIT5HI);
+	AUDIO_SR_Write(BIT6HI);
+	AUDIO_SR_Write(BIT7HI);
 }
 
 void ReleaseTOT( void) {

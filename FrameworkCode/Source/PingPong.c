@@ -181,7 +181,8 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 				
 				// Init 3s timer
 				printf("Starting timer (3s)...\n\r");
-				
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Middle;
 			}
 			else if (ThisEvent.EventType == FALLING_TOP) {
@@ -189,30 +190,43 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 				
 				// Init 3s timer
 				printf("Starting timer (3s)...\n\r");
-				
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Top;
+			}
+			else if (ThisEvent.EventType == ES_TIMEOUT) {
+				printf("ES_TIMEOUT in Top\n\r");
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT4HI);
+				}
 			}
 			break;
 		}
 		case Middle:
 		{
 			if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("ES_TIMEOUT in Middle\n\r");
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT4HI);
+				}
+				else if(ThisEvent.EventParam == 9){
+					printf("ES_TIMEOUT in Middle\n\r");
 				
-				ES_Event_t Event2Post;
-				Event2Post.EventType = POS_MIDDLE;
-				PostGame(Event2Post);
+					ES_Event_t Event2Post;
+					Event2Post.EventType = POS_MIDDLE;
+					PostGame(Event2Post);
 				
-				CurrentState = Middle;
+					CurrentState = Middle;
+				}
 			}
 			else if (ThisEvent.EventType == RISING_MIDDLE) {
 				printf("RISING_MIDDLE in Middle\n\r");
-				
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Neutral;
 			}
 			else if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Middle\n\r");
-				
+
 				CurrentState = PPStandby;
 			}
 			break;
@@ -221,16 +235,21 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("ES_TIMEOUT in Top\n\r");
-				
+				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT4HI);
+				}
+				else if(ThisEvent.EventParam == 9){
 				ES_Event_t Event2Post;
 				Event2Post.EventType = POS_TOP;
 				PostGame(Event2Post);
 				
 				CurrentState = Top;
+				}
 			}
 			else if (ThisEvent.EventType == RISING_TOP) {
 				printf("RISING_Top in Top\n\r");
-				
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
 				CurrentState = Neutral;
 			}
 			else if (ThisEvent.EventType == SPINNER_STOP) {
@@ -313,8 +332,8 @@ bool CheckPingPongEvents( void) {
         ThisEvent.EventType = FALLING_MIDDLE;
         PostPingPong(ThisEvent);
       }
-			AUDIO_SR_Write(BIT4LO);
-			AUDIO_SR_Write(BIT4HI);
+			
+			ES_Timer_InitTimer(10, 140);
 			
       ReturnVal = true;
   }
@@ -330,7 +349,7 @@ bool CheckPingPongEvents( void) {
         ThisEvent.EventType = FALLING_TOP;
         PostPingPong(ThisEvent);
       }
-
+			
       ReturnVal = true;
   }
 	

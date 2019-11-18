@@ -63,7 +63,10 @@ void SR_Init(void){
   // of PB0, PB1 & PB2 to output
   
   // start with the data & sclk lines low and the RCLK line high
-	
+	HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT5HI | BIT6HI | BIT7HI);
+	HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT5HI | BIT6HI | BIT7HI);
+	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT6LO);
+	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT5HI | BIT7HI);
 }
 
 // Create your own function header comment
@@ -93,9 +96,10 @@ bool CheckHiLo(uint8_t data){
 }
 
 // Create your own function header comment
-	static uint8_t LocalRegisterImage=0;
+	
 
 void LED_SR_Write(uint8_t NewValue){
+	static uint8_t LocalRegisterImage=0;
 	//printf("First Register Image %d\n\r", LocalRegisterImage);
   if(CheckHiLo(NewValue)){
 		LocalRegisterImage |= (NewValue);
@@ -127,29 +131,33 @@ void LED_SR_Write(uint8_t NewValue){
 //printf("writing %d\n\r", LocalRegisterImage);
 }
 
-//void AUDIO_SR_Write(uint8_t NewValue){
-
-//  uint8_t BitCounter;
-//  LocalRegisterImage = NewValue; // save a local copy
-//	uint8_t loopValue = NewValue;
-//// lower the register clock
-//	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT7LO);
-//	for(int i=0; i < 8; i++){
-//		if(GET_MSB_IN_LSB(loopValue)){
-//			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT5HI);
-//			loopValue = loopValue << 1;
-//	} else {
-//			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT5LO);
-//			loopValue = loopValue << 1;
-//		}
-//		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT6HI);
-//		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT6LO);
-//}
-//	
-//// shift out the data while pulsing the serial clock  
-//// Isolate the MSB of NewValue, put it into the LSB position and output to port
-//// raise SCLK
-//// finish looping through bits in NewValue
-//// raise the register clock to latch the new data
-//  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT7HI);
-//}
+void AUDIO_SR_Write(uint8_t NewValue){
+	static uint8_t LocalRegisterImage=0;
+  if(CheckHiLo(NewValue)){
+		LocalRegisterImage |= (NewValue);
+	} else {
+		LocalRegisterImage &= (NewValue);
+	}
+	uint8_t loopValue = LocalRegisterImage;
+// lower the register clock
+	HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT7LO);
+	for(int i=0; i < 8; i++){
+		if(GET_MSB_IN_LSB(loopValue)){
+			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT5HI);
+			loopValue = loopValue << 1;
+	} else {
+			HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT5LO);
+			loopValue = loopValue << 1;
+		}
+		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT6HI);
+		HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT6LO);
+}
+	
+// shift out the data while pulsing the serial clock  
+// Isolate the MSB of NewValue, put it into the LSB position and output to port
+// raise SCLK
+// finish looping through bits in NewValue
+// raise the register clock to latch the new data
+  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT7HI);
+printf("written %d\n\r",LocalRegisterImage);
+}
