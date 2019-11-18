@@ -159,5 +159,6 @@ void AUDIO_SR_Write(uint8_t NewValue){
 // finish looping through bits in NewValue
 // raise the register clock to latch the new data
   HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= (BIT7HI);
-printf("written %d\n\r",LocalRegisterImage);
+//printf("written %d\n\r",LocalRegisterImage);
 }
+

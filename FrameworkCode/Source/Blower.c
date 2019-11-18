@@ -48,7 +48,7 @@
 #define MIC_LO BIT2LO
 
 #define BLOWING_DURATION 200
-#define TWO_SEC 2000
+#define TWO_SEC 1500
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -91,7 +91,7 @@ bool InitBlower(uint8_t Priority)
 	
 	BlowerInitialize();
 	
-	//LED_on(0);
+	LED_on(0);
 	
   // put us into the Initial PseudoState
   CurrentState = BlowerStandby;
@@ -165,8 +165,6 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
       }
 			else if (ThisEvent.EventType == PP_COMPLETED) {
 				printf("PP_COMPLETED in BlowerStandby\n\r");
-				AUDIO_SR_Write(BIT6LO);
-				ES_Timer_InitTimer(10,140);
 				CurrentState = NotBlowing;
 			}
 			else if (ThisEvent.EventType == SPINNER_START) {
@@ -175,7 +173,6 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					printf("SPINNER_START in BlowerStandby\n\r");
 					
 					// Turn off all LEDs
-					LED_on(0);
 					
 					CurrentState = NotBlowing;
 				}				
@@ -184,6 +181,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 				static uint8_t increment = 0;
 				if(ThisEvent.EventParam == 10){
 					AUDIO_SR_Write(BIT6HI);
+					AUDIO_SR_Write(BIT4HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT7HI);
 				}
 			}
 			break;
@@ -195,7 +196,7 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 			
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in NotBlowing\n\r");
-				
+				LED_on(0);
 				CurrentState = BlowerStandby;
 			}
 			else if (ThisEvent.EventType == BLOWING_START) {
@@ -225,6 +226,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 				static uint8_t increment = 0;
 				if(ThisEvent.EventParam == 10){
 					AUDIO_SR_Write(BIT4HI);
+					AUDIO_SR_Write(BIT6HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT7HI);
 				}
 				else if (ThisEvent.EventParam == BLOWING_LED_TIMER) {
 					printf("BLOWING_LED_TIMEOUT in Blowing\n\r");
@@ -232,6 +237,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					// Increment LED on
 					printf("Incrementing LEDs...\n\r");
 					increment++;
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT6HI);
+					AUDIO_SR_Write(BIT7HI);
 					AUDIO_SR_Write(BIT4LO);
 					ES_Timer_InitTimer(10,140);
 					printf("%d\n\r", increment);
@@ -241,8 +250,13 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 						ES_Event_t ThisEvent;
 						ThisEvent.EventType = GAME_COMPLETED;
 						ES_PostAll(ThisEvent);
+						
+						AUDIO_SR_Write(BIT4HI);
+						AUDIO_SR_Write(BIT5HI);
+						AUDIO_SR_Write(BIT3HI);
+						AUDIO_SR_Write(BIT7HI);
 						AUDIO_SR_Write(BIT6LO);
-						AUDIO_SR_Write(BIT6HI);
+						ES_Timer_InitTimer(10,140);
 						CurrentState = BlowerStandby;
 					}
 
