@@ -31,7 +31,8 @@ BlowerState_t QueryBlower(void);
 
 void BlowerInitialize( void);
 bool CheckBlowerEvents( void);
-static uint8_t GetCurrentState( void);
+static uint8_t GetMicState( void);
+static void LED_on(uint8_t num);
 
 #endif 
 

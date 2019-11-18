@@ -30,10 +30,8 @@ bool PostPingPong(ES_Event_t ThisEvent);
 ES_Event_t RunPingPong(ES_Event_t ThisEvent);
 PingPongState_t QueryPingPong(void);
 
-void PingPongInitialize( void);
 bool CheckPingPongEvents( void);
-static uint8_t GetIRMiddle( void);
-static uint8_t GetIRTop( void);
+
 
 #endif 
 
