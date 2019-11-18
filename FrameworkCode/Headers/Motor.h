@@ -22,23 +22,12 @@ typedef enum
 	MotorOn,
 }MotorState_t;
 
-/*typedef enum
-{
-	PingPong_NotCompleted,
-  PingPong_Completed
-}GameState_t;*/
-
 // Public Function Prototypes
 
 bool InitMotor(uint8_t Priority);
 bool PostMotor(ES_Event_t ThisEvent);
 ES_Event_t RunMotor(ES_Event_t ThisEvent);
 MotorState_t QueryMotor(void);
-
-// Change the parameters for these prototypes are you write them
-void MotorInitialize( void);
-void GetInputSignal( void);
-void ConvertSignal( void);
 
 #endif 
 
