@@ -27,9 +27,9 @@
 
 
 #define RESTRICT_POT 3000 //max output value for pot
-#define BASE_PULSE_WIDTH 240 //max output value for pot
+#define BASE_PULSE_WIDTH 250 //max output value for pot
 #define MAX_POT_OUTPUT 4095 //max output value for pot
-#define PULSE_WIDTH_RANGE 20 //max output value for pot
+#define PULSE_WIDTH_RANGE 30 //max output value for pot
 #define POT_CHANNEL 1 //max output value for pot
 #define FAN_CHANNEL 2 //max output value for pot
 #define FAN_GROUP 1 //max output value for pot

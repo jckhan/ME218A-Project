@@ -30,8 +30,8 @@
 #include "Servo_actuator.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define SERVO_LOW 160
-#define SERVO_HIGH 0
+#define SERVO_LOW 175
+#define SERVO_HIGH 55
 #define TOTAL_TIME 65000
 #define SHORT_TIME 1000
 #define INCREMENTS 65

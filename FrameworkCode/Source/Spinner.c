@@ -47,8 +47,8 @@
 #include "Fan.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define MAYBESPINNING_TIME 	100
-#define SPINNING_TIME				200
+#define MAYBESPINNING_TIME 	150
+#define SPINNING_TIME				250
 #define SPINNERHI						BIT1HI
 #define SPINNERLO						BIT1LO
 
@@ -208,7 +208,7 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 				
 				CurrentState = Spinning;
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
+			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 5) {
 				printf("ES_TIMEOUT in MaybeSpinning\n\r");
 				
 				CurrentState = Waiting4Pulse;
@@ -232,7 +232,7 @@ ES_Event_t RunSpinner(ES_Event_t ThisEvent)
 				// Init the 200ms timer
 				ES_Timer_InitTimer(5, SPINNING_TIME);
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
+			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 5) {
 				printf("ES_TIMEOUT in Spinning\n\r");
 				
 				ES_Event_t Event2Post;
