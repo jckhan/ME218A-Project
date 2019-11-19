@@ -44,7 +44,7 @@
 #include "PWM16Tiva.h"
 #include "ShiftRegisterWrite.h"
 /*----------------------------- Module Defines ----------------------------*/
-#define NEXTGAMETIME 1000
+#define NEXTGAMETIME 4500
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -194,6 +194,10 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
 				printf("TIMEOUT in YesTOT\n\r");
 				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT4HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT6HI);
 					AUDIO_SR_Write(BIT7HI);
 				}
 				else if(ThisEvent.EventParam == 1){
@@ -222,14 +226,10 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				// Open trapdoor to release TOT
 				ReleaseTOT();
-				AUDIO_SR_Write(BIT3HI);
-				AUDIO_SR_Write(BIT4HI);
-				AUDIO_SR_Write(BIT5HI);
-				AUDIO_SR_Write(BIT6HI);
-				AUDIO_SR_Write(BIT7HI);
-				AUDIO_SR_Write(BIT5LO);
 				
-				ES_Timer_InitTimer(10, 140);
+				//AUDIO_SR_Write(BIT5LO);
+				
+				//ES_Timer_InitTimer(10, 140);
 				
 				ES_Timer_InitTimer(1, NEXTGAMETIME);
 				CurrentState = Waiting4NextGame;
@@ -253,6 +253,10 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 			if(ThisEvent.EventType == ES_TIMEOUT){
 				if(ThisEvent.EventParam == 10){
 					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT6HI);
+					
+					AUDIO_SR_Write(BIT5LO);	// Play welcome to Mars
+					ES_Timer_InitTimer(10, 140);
 				}
 				else if (ThisEvent.EventParam == 1){
 					ServoPWM(0,0,0);
@@ -261,11 +265,13 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					AUDIO_SR_Write(BIT5HI);
 					AUDIO_SR_Write(BIT6HI);
 					AUDIO_SR_Write(BIT7HI);
-					LED_SR_Write(BIT0LO);
-					LED_SR_Write(BIT1LO);
-					LED_SR_Write(BIT2LO);
-					LED_SR_Write(BIT3LO);
-					printf("ES_TIMEOUT in Waiting4NextGame \n\r");
+					LED_SR_Write(BIT0LO);		// Blower 1
+					LED_SR_Write(BIT1LO);		// Blower 2
+					LED_SR_Write(BIT2LO);		// Blower 3
+					LED_SR_Write(BIT3LO);		// Blower 4
+					LED_SR_Write(BIT4LO); 	// Pingpong middle
+					LED_SR_Write(BIT5LO);		// Pingpong top
+					
 					CurrentState = NoTOT;
 				}
 			}

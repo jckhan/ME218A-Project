@@ -49,6 +49,8 @@
 
 #define BLOWING_DURATION 200
 #define TWO_SEC 1500
+#define NORMAL_SUCCESS 140
+#define FINAL_SUCCESS 140
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -177,16 +179,16 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					CurrentState = NotBlowing;
 				}				
 			}
-			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				static uint8_t increment = 0;
-				if(ThisEvent.EventParam == 10){
-					AUDIO_SR_Write(BIT6HI);
-					AUDIO_SR_Write(BIT4HI);
-					AUDIO_SR_Write(BIT5HI);
-					AUDIO_SR_Write(BIT3HI);
-					AUDIO_SR_Write(BIT7HI);
-				}
-			}
+//			else if (ThisEvent.EventType == ES_TIMEOUT) {
+//				static uint8_t increment = 0;
+//				if(ThisEvent.EventParam == 10){
+//					AUDIO_SR_Write(BIT6HI);
+//					AUDIO_SR_Write(BIT4HI);
+//					AUDIO_SR_Write(BIT5HI);
+//					AUDIO_SR_Write(BIT3HI);
+//					AUDIO_SR_Write(BIT7HI);
+//				}
+//			}
 			break;
 		}
 		
@@ -241,22 +243,28 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					AUDIO_SR_Write(BIT5HI);
 					AUDIO_SR_Write(BIT6HI);
 					AUDIO_SR_Write(BIT7HI);
-					AUDIO_SR_Write(BIT4LO);
-					ES_Timer_InitTimer(10,140);
+					if (increment != 4) {
+						AUDIO_SR_Write(BIT4LO);
+					}
+					ES_Timer_InitTimer(10,NORMAL_SUCCESS);
 					printf("%d\n\r", increment);
 					
 					LED_on(increment);
 					if(increment == 4){
-						ES_Event_t ThisEvent;
-						ThisEvent.EventType = GAME_COMPLETED;
-						ES_PostAll(ThisEvent);
-						
 						AUDIO_SR_Write(BIT4HI);
 						AUDIO_SR_Write(BIT5HI);
 						AUDIO_SR_Write(BIT3HI);
 						AUDIO_SR_Write(BIT7HI);
 						AUDIO_SR_Write(BIT6LO);
-						ES_Timer_InitTimer(10,140);
+						
+						printf("Playing final success\n\r");
+
+						ES_Timer_InitTimer(10,FINAL_SUCCESS);
+						
+						ES_Event_t ThisEvent;
+						ThisEvent.EventType = GAME_COMPLETED;
+						ES_PostAll(ThisEvent);
+						
 						CurrentState = BlowerStandby;
 					}
 
