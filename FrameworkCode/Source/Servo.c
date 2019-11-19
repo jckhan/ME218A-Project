@@ -32,9 +32,9 @@
 /*----------------------------- Module Defines ----------------------------*/
 #define SERVO_LOW 160
 #define SERVO_HIGH 0
-#define TOTAL_TIME 60000
+#define TOTAL_TIME 65000
 #define SHORT_TIME 1000
-#define INCREMENTS 60
+#define INCREMENTS 65
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions

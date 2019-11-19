@@ -158,7 +158,11 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				
 				// Turn on middle LEDs
 				LEDMiddle(1);
-				
+				AUDIO_SR_Write(BIT6HI);
+				AUDIO_SR_Write(BIT3HI);
+				AUDIO_SR_Write(BIT5HI);
+				AUDIO_SR_Write(BIT4HI);
+				AUDIO_SR_Write(BIT7HI);
 				CurrentState = Level1;
 			}
 			break;
@@ -173,13 +177,21 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				LEDMiddle(0);
 				// Turn on top LEDs
 				LEDTop(1);
+				AUDIO_SR_Write(BIT5HI);
+				AUDIO_SR_Write(BIT4HI);
+				AUDIO_SR_Write(BIT7HI);
+				AUDIO_SR_Write(BIT6HI);
 				AUDIO_SR_Write(BIT3LO);
 				ES_Timer_InitTimer(10,140); //Audio Timer
 				CurrentState = Level2;
 			}
 			else if(ThisEvent.EventType == ES_TIMEOUT){
 				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT6HI);
 					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT4HI);
+					AUDIO_SR_Write(BIT7HI);
 				}
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
@@ -201,13 +213,21 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				LEDTop(0);
 				// Turn on middle LEDs
 				LEDMiddle(1);
+				AUDIO_SR_Write(BIT5HI);
+				AUDIO_SR_Write(BIT4HI);
+				AUDIO_SR_Write(BIT7HI);
+				AUDIO_SR_Write(BIT6HI);
 				AUDIO_SR_Write(BIT3LO);
 				ES_Timer_InitTimer(10,140);
 				CurrentState = Level3;
 			}
 			else if(ThisEvent.EventType == ES_TIMEOUT){
 				if(ThisEvent.EventParam == 10){
+					AUDIO_SR_Write(BIT6HI);
 					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT7HI);
 				}
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
@@ -245,6 +265,10 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 			else if(ThisEvent.EventType == ES_TIMEOUT){
 				if(ThisEvent.EventParam == 10){
 					AUDIO_SR_Write(BIT6HI);
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT7HI);
 				}
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
@@ -263,6 +287,10 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				printf("ES_TIMEOUT in PingPong_Completed\n\r");
 					if(ThisEvent.EventParam == 10){
 						AUDIO_SR_Write(BIT6HI);
+						AUDIO_SR_Write(BIT3HI);
+						AUDIO_SR_Write(BIT5HI);
+						AUDIO_SR_Write(BIT3HI);
+						AUDIO_SR_Write(BIT7HI);
 						printf("Wrote success sound high\n\r");
 				}
 					else if(ThisEvent.EventParam == 8){
@@ -277,7 +305,11 @@ ES_Event_t RunGame(ES_Event_t ThisEvent)
 				
 				// Turn off success LEDs
 				LEDSuccess(0);
-				
+				AUDIO_SR_Write(BIT6HI);
+				AUDIO_SR_Write(BIT3HI);
+				AUDIO_SR_Write(BIT5HI);
+				AUDIO_SR_Write(BIT4HI);
+				AUDIO_SR_Write(BIT7HI);
 				CurrentState = GameStandby;
 			}
 			break;

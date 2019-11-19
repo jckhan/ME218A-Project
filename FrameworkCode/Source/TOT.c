@@ -205,6 +205,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				// Open trapdoor to release TOT
 					ReleaseTOT();
+//					AUDIO_SR_Write(BIT5LO);
+//					ES_Timer_InitTimer(10, 140);
 					ES_Timer_InitTimer(1, NEXTGAMETIME);
 					CurrentState = Waiting4NextGame;
 				}
@@ -220,7 +222,13 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				// Open trapdoor to release TOT
 				ReleaseTOT();
+				AUDIO_SR_Write(BIT3HI);
+				AUDIO_SR_Write(BIT4HI);
+				AUDIO_SR_Write(BIT5HI);
+				AUDIO_SR_Write(BIT6HI);
+				AUDIO_SR_Write(BIT7HI);
 				AUDIO_SR_Write(BIT5LO);
+				
 				ES_Timer_InitTimer(10, 140);
 				
 				ES_Timer_InitTimer(1, NEXTGAMETIME);
@@ -253,6 +261,10 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					AUDIO_SR_Write(BIT5HI);
 					AUDIO_SR_Write(BIT6HI);
 					AUDIO_SR_Write(BIT7HI);
+					LED_SR_Write(BIT0LO);
+					LED_SR_Write(BIT1LO);
+					LED_SR_Write(BIT2LO);
+					LED_SR_Write(BIT3LO);
 					printf("ES_TIMEOUT in Waiting4NextGame \n\r");
 					CurrentState = NoTOT;
 				}
