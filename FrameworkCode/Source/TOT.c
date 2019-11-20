@@ -43,8 +43,6 @@
 #include "inc/hw_sysctl.h"
 #include "PWM16Tiva.h"
 #include "ShiftRegisterWrite.h"
-#include "Servo.h"
-#include "Servo_actuator.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define NEXTGAMETIME 4500
@@ -170,7 +168,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				WelcomeIncrement = 0;
         CurrentState = NoTOT;
 				ES_Timer_InitTimer(12, WELCOME_TIME);
-				break;
+				//break;
       }
 			else if (ThisEvent.EventType == TOT_DETECTED) {
 				printf("TOT_DETECTED in NoTOT\n\r");
@@ -182,9 +180,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				LED_SR_Write(BIT3LO);		// Blower 4
 				LED_SR_Write(BIT4LO); 	// Pingpong middle
 				LED_SR_Write(BIT5LO);		// Pingpong top
-				
-				ResetServo();
-				
+								
 				ES_Event_t Event2Post;
 				Event2Post.EventType = START_POTATO;
 				ES_PostAll(Event2Post);
@@ -199,31 +195,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				CurrentState = YesTOT;
 			}
-			if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 12) {
+			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 12) {
 				uint8_t Remainder = WelcomeIncrement % 9;
-				
-//				switch (WelcomeIncrement % 4) {
-//					case 0:
-//					{
-//						ServoPWM(165,0,1);
-//						break;
-//					}
-//					case 1:
-//					{
-//						ServoPWM(150,0,1);
-//						break;
-//					}
-//					case 2:
-//					{
-//						ServoPWM(135,0,1);
-//						break;
-//					}
-//					case 3:
-//					{
-//						ServoPWM(120,0,1);
-//						break;
-//					}
-//				}
 				
 				switch (Remainder) {
 					case 0:
@@ -310,8 +283,9 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				CurrentState = Waiting4NextGame;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				printf("TIMEOUT in YesTOT\n\r");
+				
 				if(ThisEvent.EventParam == 10){
+					printf("AUDIO TIMEOUT in YesTOT\n\r");
 					AUDIO_SR_Write(BIT3HI);
 					AUDIO_SR_Write(BIT4HI);
 					AUDIO_SR_Write(BIT5HI);
@@ -319,6 +293,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					AUDIO_SR_Write(BIT7HI);
 				}
 				else if(ThisEvent.EventParam == 1){
+					printf("Timer 1 TIMEOUT in YesTOT\n\r");
+					
 					ES_Event_t Event2Post;
 					Event2Post.EventType = END_POTATO;
 					ES_PostAll(Event2Post);
@@ -377,7 +353,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					ES_Timer_InitTimer(10, 140);
 				}
 				else if (ThisEvent.EventParam == 1){
-					ServoPWM(0,0,0);
+					ServoPWM(1,0,0);
 					AUDIO_SR_Write(BIT3HI);
 					AUDIO_SR_Write(BIT4HI);
 					AUDIO_SR_Write(BIT5HI);
@@ -434,12 +410,14 @@ void TOTInitialize( void) {
 	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
 	while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
 	}		
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI); //Digital Enable pins 0 through 1
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (BIT0LO & BIT1LO); //Set pins 0 and 1 to inputs
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI | BIT3HI); //Digital Enable pins 0 through 1
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (BIT0LO & BIT1LO & BIT3LO); //Set pins 0 and 1, and 3 to inputs
+	HWREG(GPIO_PORTB_BASE+GPIO_O_PUR) |= BIT3HI;// set PB3 internal pull-up
+	
 	
 	// Initialize the control line for the trapdoor servo
 	ServoPinInit(2); //Need 2 servos, channel 0 will be TOT system, channel 1 will be Timer System [BOTH ARE GROUP 0]
-	ServoPWM(20,0,0); //This is PB6
+	ServoPWM(1,0,0); //This is PB6
 	
 	//Set Audio ports high
 	SR_Init();
@@ -465,10 +443,20 @@ uint8_t GetTOTState( void) {
   }
 }
 
+uint8_t GetResetState( void) {
+  uint8_t InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BIT3HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 bool CheckTOTEvents( void){
   
   bool ReturnVal = false;
   uint8_t CurrentTOTState = GetTOTState();
+	uint8_t CurrentResetState = GetResetState();
 	
   if (CurrentTOTState != LastTOTState) {
       if (CurrentTOTState) {
@@ -486,6 +474,14 @@ bool CheckTOTEvents( void){
 
       ReturnVal = true;
   }
+	
+	if (CurrentResetState == 0) {
+			ES_Event_t ThisEvent;
+			ThisEvent.EventType = RESET;
+			ES_PostAll(ThisEvent);
+      ReturnVal = true;
+  }
+	
   LastTOTState = CurrentTOTState;
   return ReturnVal;
 }

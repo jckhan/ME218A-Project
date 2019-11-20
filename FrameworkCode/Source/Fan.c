@@ -26,13 +26,15 @@
 #include "Fan.h"
 
 
-#define RESTRICT_POT 3000 //max output value for pot
-#define BASE_PULSE_WIDTH 250 //max output value for pot
-#define MAX_POT_OUTPUT 4095 //max output value for pot
-#define PULSE_WIDTH_RANGE 30 //max output value for pot
+//#define RESTRICT_POT 2183 //max output value for pot
+#define BASE_PULSE_WIDTH 900 //max output value for pot
+#define MAX_POT_OUTPUT 2183 //max output value for pot
+#define PULSE_WIDTH_RANGE 300 //max output value for pot
 #define POT_CHANNEL 1 //max output value for pot
 #define FAN_CHANNEL 2 //max output value for pot
 #define FAN_GROUP 1 //max output value for pot
+#define PERIOD 1000
+
 void Fan(uint8_t I)
 {
 	if (I == 1)
@@ -54,47 +56,22 @@ void Fan(uint8_t I)
 			
 	uint32_t pulse_width;
 	//storing and assigning period value
-	uint32_t period = 1100; // PERIOD
-			
-			
+	uint32_t period = PERIOD;
 
-//while(kbhit()!=1)
-////use kbhit() in while loop to test
-//{
-		//READ VOLTAGE AT POT OUTPUT
 		ADC_MultiRead(Pot_ConversionResults);
 	
 		//STORE POT OUTPUT "VOLTAGE VALUE" IN VARIABLE FROM ARRAY
 		pot_voltage = Pot_ConversionResults[0];
 		
-//		if((pot_voltage<RESTRICT_POT)|(pot_voltage==RESTRICT_POT))
-//			{}
-//	else if((pot_voltage>RESTRICT_POT))
-//			{pot_voltage=RESTRICT_POT;}
-//		//SET FREQUENCY
 		PWM_TIVA_SetPeriod(period, FAN_GROUP);
-	
-		//mapping duty cycle to pot output voltage
-//		duty_cycle = abs((0.4*(pot_voltage)*(100-1))/4095);
+
 			
 			//pulse_width = abs((0.4*(pot_voltage)*(1000-1))/4095);
-			pulse_width = abs( BASE_PULSE_WIDTH + pot_voltage*(double)((double)(PULSE_WIDTH_RANGE)/(double)MAX_POT_OUTPUT) );
-			
-//		printf("duty_cycle = %u",duty_cycle);
-	//10% no lift
-	//25% too much
-	//need a duty cycle range between 10 and 25% mapped to reange of pot outputs
-	//15-20%ideal duty cycle range for period = 1000
-	
-		//outputting duty cycle value to tiva
-//		PWM_TIVA_SetDuty(duty_cycle,2);
-//			
-			
+			pulse_width = abs( BASE_PULSE_WIDTH - (double)pot_voltage*(double)((double)(PULSE_WIDTH_RANGE)/(double)MAX_POT_OUTPUT) );
+			//printf("PW: %d\r\n", pulse_width);
+
 			PWM_TIVA_SetPulseWidth( pulse_width,FAN_CHANNEL);
-//}
-//			printf("pot_voltage = %u\r\n",pot_voltage);	
-////			printf("duty_cycle = %u\r\n",duty_cycle);
-//			printf("pulse_width = %u\r\n",pulse_width);
+
 
 		}
 

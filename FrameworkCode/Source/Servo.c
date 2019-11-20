@@ -49,7 +49,7 @@ void ResetServo( void);
 // type of state variable should match htat of enum in header file
 static ServoState_t CurrentState;
 //static uint16_t NumIncrements = TOTAL_TIME / SHORT_TIME;
-static uint16_t ServoIncrement = (SERVO_HIGH - SERVO_LOW) / INCREMENTS;
+static uint16_t ServoIncrement = ((SERVO_LOW - SERVO_HIGH)) / INCREMENTS;
 static uint16_t CurrentPosition = SERVO_LOW;
 
 // with the introduction of Gen2, we need a module level Priority var as well
@@ -153,7 +153,8 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
       }
 			else if (ThisEvent.EventType == TOT_DETECTED) {
 				printf("TOT_DETECTED in ServoStandby\n\r");
-				
+				ResetServo();
+				CurrentPosition = SERVO_LOW;
 				// Init short timer 50ms
 				printf("Starting timer (50ms)...\n\r");
 				ES_Timer_InitTimer(2, SHORT_TIME);
@@ -265,7 +266,7 @@ void IncrementServo( void) {
 	
 	
 	
-	CurrentPosition += ServoIncrement;
+	CurrentPosition -= ServoIncrement;
 	if (CurrentPosition <= 180) {
 		//printf("Incrementing servo to %d...\n\r", CurrentPosition);
 		ServoPWM(CurrentPosition,0,1);

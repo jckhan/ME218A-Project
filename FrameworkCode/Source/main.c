@@ -55,6 +55,9 @@ int main(void)
 	HWREG(SYSCTL_RCGCGPIO) |= BIT0HI; //Enable port A
 	while ((HWREG(SYSCTL_PRGPIO) & BIT0HI) != BIT0HI){
 	}
+	HWREG(SYSCTL_RCGCGPIO) |= BIT2HI; //Enable port C
+	while ((HWREG(SYSCTL_PRGPIO) & BIT2HI) != BIT2HI){
+	}
 	HWREG(SYSCTL_RCGCGPIO) |= BIT4HI; //Enable port E
 	while ((HWREG(SYSCTL_PRGPIO) & BIT4HI) != BIT4HI){
 	}	
