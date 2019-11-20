@@ -40,9 +40,9 @@
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-void ServoInitialize( void);
-void IncrementServo( void);
-void ResetServo( void);
+//void ServoInitialize( void);
+//void IncrementServo( void);
+//void ResetServo( void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -257,7 +257,8 @@ ServoState_t QueryServo(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
-void ServoInitialize( void) {
+void ServoInitialize( void) 
+{
 	// Initialize the control line for the trapdoor servo
 	ServoPWM(SERVO_LOW,0,1); //This is PB6
 }
@@ -276,7 +277,7 @@ void IncrementServo( void) {
 void ResetServo( void) {
 	printf("Returning servo to original position...\n\r");
 	CurrentPosition = SERVO_LOW;
-	//ServoPWM(SERVO_LOW,0,1);
+	//ServoPWM(SERVO_LOW,0,1);//UNCOMMENTED THIS TO TEST
 	//ES_Timer_StopTimer(1);
 	ES_Timer_StopTimer(2);
 }

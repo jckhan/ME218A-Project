@@ -786,6 +786,16 @@
               <FileType>5</FileType>
               <FilePath>.\Headers\Fan_test.h</FilePath>
             </File>
+            <File>
+              <FileName>Servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo_Actuator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo_Actuator.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1634,6 +1644,16 @@
               <FileType>5</FileType>
               <FilePath>.\Headers\Fan_test.h</FilePath>
             </File>
+            <File>
+              <FileName>Servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo_Actuator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo_Actuator.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2481,6 +2501,16 @@
               <FileName>Fan_test.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\Fan_test.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo_Actuator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo_Actuator.h</FilePath>
             </File>
           </Files>
         </Group>

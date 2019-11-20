@@ -27,6 +27,7 @@
 #include "ES_Framework.h"
 #include "TOT.h"
 #include "Servo_Actuator.h"
+#include "Servo.h"
 
 #include "ES_Port.h"
 #include "termio.h"
@@ -180,11 +181,12 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				LED_SR_Write(BIT3LO);		// Blower 4
 				LED_SR_Write(BIT4LO); 	// Pingpong middle
 				LED_SR_Write(BIT5LO);		// Pingpong top
-								
+							
+//				ResetServo();
 				ES_Event_t Event2Post;
 				Event2Post.EventType = START_POTATO;
 				ES_PostAll(Event2Post);
-				AUDIO_SR_Write(BIT7LO);
+				AUDIO_SR_Write((uint8_t)BIT7LO);
 				ES_Timer_InitTimer(10, 140);
 				ES_Timer_InitTimer(11, IDLE_TIME);
 				
