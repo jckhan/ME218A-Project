@@ -156,6 +156,10 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
+	if (ThisEvent.EventType != ES_TIMEOUT) {
+		ES_Timer_InitTimer(11, 30000);
+	}
+	
   switch (CurrentState)
   {
 		case BlowerStandby:

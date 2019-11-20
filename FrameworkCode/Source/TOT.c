@@ -43,8 +43,13 @@
 #include "inc/hw_sysctl.h"
 #include "PWM16Tiva.h"
 #include "ShiftRegisterWrite.h"
+#include "Servo.h"
+#include "Servo_actuator.h"
+
 /*----------------------------- Module Defines ----------------------------*/
 #define NEXTGAMETIME 4500
+#define IDLE_TIME 30000
+#define WELCOME_TIME 1000
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -55,6 +60,7 @@
 // type of state variable should match htat of enum in header file
 static TOTState_t CurrentState;
 static uint8_t LastTOTState;
+static uint8_t WelcomeIncrement;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -146,6 +152,14 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+	
+	if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 11) {
+		ES_Event_t Event2Post;
+		Event2Post.EventType = RESET;
+		ES_PostAll(Event2Post);
+	} else {
+		ES_Timer_InitTimer(11, IDLE_TIME);
+	}
 
   switch (CurrentState)
   {
@@ -153,18 +167,30 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-				
+				WelcomeIncrement = 0;
         CurrentState = NoTOT;
+				ES_Timer_InitTimer(12, WELCOME_TIME);
 				break;
       }
 			else if (ThisEvent.EventType == TOT_DETECTED) {
 				printf("TOT_DETECTED in NoTOT\n\r");
+				
+				WelcomeIncrement = 0;
+				LED_SR_Write(BIT0LO);		// Blower 1
+				LED_SR_Write(BIT1LO);		// Blower 2
+				LED_SR_Write(BIT2LO);		// Blower 3
+				LED_SR_Write(BIT3LO);		// Blower 4
+				LED_SR_Write(BIT4LO); 	// Pingpong middle
+				LED_SR_Write(BIT5LO);		// Pingpong top
+				
+				ResetServo();
 				
 				ES_Event_t Event2Post;
 				Event2Post.EventType = START_POTATO;
 				ES_PostAll(Event2Post);
 				AUDIO_SR_Write(BIT7LO);
 				ES_Timer_InitTimer(10, 140);
+				ES_Timer_InitTimer(11, IDLE_TIME);
 				
 				printf("POTATO started...\n\r");
 				
@@ -172,6 +198,98 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				// Game timer is started by the servo
 				
 				CurrentState = YesTOT;
+			}
+			if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 12) {
+				uint8_t Remainder = WelcomeIncrement % 9;
+				
+//				switch (WelcomeIncrement % 4) {
+//					case 0:
+//					{
+//						ServoPWM(165,0,1);
+//						break;
+//					}
+//					case 1:
+//					{
+//						ServoPWM(150,0,1);
+//						break;
+//					}
+//					case 2:
+//					{
+//						ServoPWM(135,0,1);
+//						break;
+//					}
+//					case 3:
+//					{
+//						ServoPWM(120,0,1);
+//						break;
+//					}
+//				}
+				
+				switch (Remainder) {
+					case 0:
+					{
+						LED_SR_Write(BIT0LO);		// Blower 1
+						LED_SR_Write(BIT1LO);		// Blower 2
+						LED_SR_Write(BIT2LO);		// Blower 3
+						LED_SR_Write(BIT3LO);		// Blower 4
+						LED_SR_Write(BIT4LO); 	// Pingpong middle
+						LED_SR_Write(BIT5LO);		// Pingpong top
+						break;
+					}
+					case 1:
+					{
+						LED_SR_Write(BIT4HI);
+						break;
+					}
+					case 2:
+					{
+						LED_SR_Write(BIT5HI);
+						break;
+					}
+					case 3:
+					{
+						LED_SR_Write(BIT0HI);
+						break;
+					}
+					case 4:
+					{
+						LED_SR_Write(BIT1HI);
+						break;
+					}
+					case 5:
+					{
+						LED_SR_Write(BIT2HI);
+						break;
+					}
+					case 6:
+					{
+						LED_SR_Write(BIT3HI);
+						break;
+					}
+					case 7:
+					{
+						LED_SR_Write(BIT0LO);		// Blower 1
+						LED_SR_Write(BIT1LO);		// Blower 2
+						LED_SR_Write(BIT2LO);		// Blower 3
+						LED_SR_Write(BIT3LO);		// Blower 4
+						LED_SR_Write(BIT4LO); 	// Pingpong middle
+						LED_SR_Write(BIT5LO);		// Pingpong top
+						break;
+					}
+					case 8:
+					{
+						LED_SR_Write(BIT0HI);		// Blower 1
+						LED_SR_Write(BIT1HI);		// Blower 2
+						LED_SR_Write(BIT2HI);		// Blower 3
+						LED_SR_Write(BIT3HI);		// Blower 4
+						LED_SR_Write(BIT4HI); 	// Pingpong middle
+						LED_SR_Write(BIT5HI);		// Pingpong top
+						break;
+					}
+				}
+				
+				WelcomeIncrement++;
+				ES_Timer_InitTimer(12, WELCOME_TIME);
 			}
 			break;
 		}
@@ -187,7 +305,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				
 				printf("POTATO ended...\n\r");
 				//init timer for next game
-				ES_Timer_InitTimer(1, NEXTGAMETIME);
+				ES_Timer_InitTimer(1, 1000);
 				ReleaseTOT();
 				CurrentState = Waiting4NextGame;
 			}
@@ -271,6 +389,9 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					LED_SR_Write(BIT3LO);		// Blower 4
 					LED_SR_Write(BIT4LO); 	// Pingpong middle
 					LED_SR_Write(BIT5LO);		// Pingpong top
+					
+					WelcomeIncrement = 0;
+					ES_Timer_InitTimer(12, WELCOME_TIME);
 					
 					CurrentState = NoTOT;
 				}

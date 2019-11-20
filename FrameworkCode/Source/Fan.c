@@ -54,7 +54,7 @@ void Fan(uint8_t I)
 			
 	uint32_t pulse_width;
 	//storing and assigning period value
-	uint32_t period = 1000; // PERIOD
+	uint32_t period = 1100; // PERIOD
 			
 			
 
