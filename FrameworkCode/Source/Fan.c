@@ -26,14 +26,15 @@
 #include "Fan.h"
 
 
-#define RESTRICT_POT 3000 //max output value for pot
-#define BASE_PULSE_WIDTH 50000 //max output value for pot
+#define RESTRICT_POT 0 //max output value for pot
+#define BASE_PULSE_WIDTH 30000 //max output value for pot
 #define MAX_POT_OUTPUT 4095 //max output value for pot
-#define PULSE_WIDTH_RANGE 2000 //max output value for pot
+#define PULSE_WIDTH_RANGE 10000 //max output value for pot
 #define POT_CHANNEL 1 //max output value for pot
 #define FAN_CHANNEL 2 //max output value for pot
 #define FAN_GROUP 1 //max output value for pot
 #define period 65000
+#define pot_baseline 4095 //calibration constant to reduce the pot_valtage value because its too high on its own
 void Fan(uint8_t I)
 {
 	if (I == 1)
@@ -59,14 +60,14 @@ void Fan(uint8_t I)
 			
 			
 
-//while(kbhit()!=1)
+while(kbhit()!=1)
 ////use kbhit() in while loop to test
-//{
+{
 		//READ VOLTAGE AT POT OUTPUT
 		ADC_MultiRead(Pot_ConversionResults);
 	
 		//STORE POT OUTPUT "VOLTAGE VALUE" IN VARIABLE FROM ARRAY
-		pot_voltage = Pot_ConversionResults[0];
+		pot_voltage = abs(Pot_ConversionResults[0] - pot_baseline);
 		
 //		if((pot_voltage<RESTRICT_POT)|(pot_voltage==RESTRICT_POT))
 //			{}
@@ -92,7 +93,7 @@ void Fan(uint8_t I)
 //			
 			
 			PWM_TIVA_SetPulseWidth( pulse_width,FAN_CHANNEL);
-//}
+}
 //			printf("pot_voltage = %u\r\n",pot_voltage);	
 ////			printf("duty_cycle = %u\r\n",duty_cycle);
 //			printf("pulse_width = %u\r\n",pulse_width);
