@@ -49,6 +49,7 @@
 #define NEXTGAMETIME 4500
 #define IDLE_TIME 30000
 #define WELCOME_TIME 1000
+#define TIMING_SERVO_LOW 180
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -163,6 +164,8 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
   switch (CurrentState)
   {
 		case NoTOT:
+						//printf("current state: notot\n\r");
+
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
@@ -266,10 +269,16 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				WelcomeIncrement++;
 				ES_Timer_InitTimer(12, WELCOME_TIME);
 			}
+			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 14) {
+				printf("THIS IS THE TIMING RESET TIMER !!!!!!!!!!!!! \n\r");
+				ServoPWM(TIMING_SERVO_LOW, 0, 1);
+			}
 			break;
 		}
 		
 		case YesTOT:
+						//printf("current state: yestot\n\r");
+
 		{
 			if (ThisEvent.EventType == TOT_REMOVED) {
 				printf("TOT_REMOVED in YesTOT\n\r");
@@ -281,7 +290,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				printf("POTATO ended...\n\r");
 				//init timer for next game
 				ES_Timer_InitTimer(1, 1000);
-				ReleaseTOT();
+//				ReleaseTOT();
 				CurrentState = Waiting4NextGame;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
@@ -314,19 +323,14 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 			else if (ThisEvent.EventType == GAME_COMPLETED) {
 				printf("GAME_COMPLETED in YesTOT\n\r");
 				
+				printf("RESET in YesTOT\n\r");
+				
 				ES_Event_t Event2Post;
 				Event2Post.EventType = END_POTATO;
 				ES_PostAll(Event2Post);
 				
-				printf("POTATO ended...\n\r");
-				
 				// Open trapdoor to release TOT
 				ReleaseTOT();
-				
-				//AUDIO_SR_Write(BIT5LO);
-				
-				//ES_Timer_InitTimer(10, 140);
-				
 				ES_Timer_InitTimer(1, NEXTGAMETIME);
 				CurrentState = Waiting4NextGame;
 			}
@@ -345,6 +349,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 			break;
 		}
 		case Waiting4NextGame:
+			//printf("current state: waiting4nextgame\n\r");
 		{
 			if(ThisEvent.EventType == ES_TIMEOUT){
 				if(ThisEvent.EventParam == 10){
@@ -371,11 +376,69 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					WelcomeIncrement = 0;
 					ES_Timer_InitTimer(12, WELCOME_TIME);
 					
+					uint16_t CurrentPosition = TIMING_SERVO_LOW;
+					//			ServoPWM(CurrentPosition,0,1);
+					ES_Timer_InitTimer(14, 500);
+					
 					CurrentState = NoTOT;
 				}
 			}
+			else if (ThisEvent.EventType == TOT_DETECTED) {
+				printf("TOT_DETECTED in Waiting4NextGame\n\r");
+				
+				ServoPWM(1,0,0);
+					AUDIO_SR_Write(BIT3HI);
+					AUDIO_SR_Write(BIT4HI);
+					AUDIO_SR_Write(BIT5HI);
+					AUDIO_SR_Write(BIT6HI);
+					AUDIO_SR_Write(BIT7HI);
+					LED_SR_Write(BIT0LO);		// Blower 1
+					LED_SR_Write(BIT1LO);		// Blower 2
+					LED_SR_Write(BIT2LO);		// Blower 3
+					LED_SR_Write(BIT3LO);		// Blower 4
+					LED_SR_Write(BIT4LO); 	// Pingpong middle
+					LED_SR_Write(BIT5LO);		// Pingpong top
+					
+				ES_Timer_InitTimer(12, WELCOME_TIME);
+				
+				WelcomeIncrement = 0;
+				LED_SR_Write(BIT0LO);		// Blower 1
+				LED_SR_Write(BIT1LO);		// Blower 2
+				LED_SR_Write(BIT2LO);		// Blower 3
+				LED_SR_Write(BIT3LO);		// Blower 4
+				LED_SR_Write(BIT4LO); 	// Pingpong middle
+				LED_SR_Write(BIT5LO);		// Pingpong top
+							
+//				ResetServo();
+				ES_Event_t Event2Post;
+				Event2Post.EventType = START_POTATO;
+				ES_PostAll(Event2Post);
+				AUDIO_SR_Write((uint8_t)BIT7LO);
+				ES_Timer_InitTimer(10, 140);
+				ES_Timer_InitTimer(11, IDLE_TIME);
+				
+				printf("POTATO started...\n\r");
+				
+		
+				// Game timer is started by the servo
+				
+				CurrentState = YesTOT;
 			break;
 		}
+			if (ThisEvent.EventType == TOT_REMOVED) {
+				printf("TOT_REMOVED in Waiting4NextGame\n\r");
+				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = END_POTATO;
+				ES_PostAll(Event2Post);
+				
+				printf("POTATO ended...\n\r");
+				//init timer for next game
+				ES_Timer_InitTimer(1, 1000);
+//				ReleaseTOT();
+				CurrentState = Waiting4NextGame;
+			}
+	}
 		default:
       ;
   }                                   // end switch on Current State
@@ -431,7 +494,7 @@ void TOTInitialize( void) {
 }
 
 void ReleaseTOT( void) {
-	ServoPWM(160,0,0);
+	ServoPWM(TIMING_SERVO_LOW,0,0);
 	printf("Opening trapdoor to release TOT...\n\r");
 	// Return trapdoor to its default position
 }

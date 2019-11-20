@@ -358,7 +358,7 @@ typedef enum
 #define TIMER11_RESP_FUNC PostTOT	// idle timer
 #define TIMER12_RESP_FUNC ES_PostAll
 #define TIMER13_RESP_FUNC PostPingPong 
-#define TIMER14_RESP_FUNC TIMER_UNUSED
+#define TIMER14_RESP_FUNC PostTOT  // TIMING SERVO RESET TIMER
 #define TIMER15_RESP_FUNC TIMER_UNUSED
 
 /****************************************************************************/

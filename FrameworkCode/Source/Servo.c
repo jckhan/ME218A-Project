@@ -30,8 +30,8 @@
 #include "Servo_actuator.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define SERVO_LOW 175
-#define SERVO_HIGH 55
+#define SERVO_LOW 180
+#define SERVO_HIGH 120
 #define TOTAL_TIME 65000
 #define SHORT_TIME 1000
 #define INCREMENTS 65
@@ -49,7 +49,9 @@
 // type of state variable should match htat of enum in header file
 static ServoState_t CurrentState;
 //static uint16_t NumIncrements = TOTAL_TIME / SHORT_TIME;
-static uint16_t ServoIncrement = ((SERVO_LOW - SERVO_HIGH)) / INCREMENTS;
+//static uint16_t ServoIncrement = (SERVO_LOW - SERVO_HIGH) / INCREMENTS;
+static uint16_t ServoIncrement;
+static uint16_t IncrementsLeft = INCREMENTS;
 static uint16_t CurrentPosition = SERVO_LOW;
 
 // with the introduction of Gen2, we need a module level Priority var as well
@@ -174,44 +176,28 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				printf("TOT_REMOVED in ServoRunning\n\r");
 				
 				// Return servo to original position
-				ResetServo();
+				//ResetServo();
 				CurrentPosition = SERVO_LOW;
+				IncrementsLeft = INCREMENTS;
 				
 				CurrentState = ServoStandby;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				//if (ThisEvent.EventParam == 1) {
-					//printf("TIMEOUT_SHORT in ServoRunning\n\r");
-					
 					// Increment servo
 					IncrementServo();
 					
 					// Init short timer 500ms
 					ES_Timer_InitTimer(2, SHORT_TIME);
 					
-					CurrentState = ServoRunning;
-				//}
-				/*
-				else if (ThisEvent.EventParam == 2) {
-					printf("TIMEOUT_LONG in ServoRunning\n\r");
-					
-					ES_Event_t Event2Post;
-					Event2Post.EventType = GAME_COMPLETED;
-					ES_PostAll(Event2Post);
-					
-					// Return servo to original position
-					printf("Returning servo to original position...\n\r");
-					ResetServo();
-					
-					CurrentState = ServoStandby;
-				}	
-*/				
+					CurrentState = ServoRunning;		
 			}
 			else if (ThisEvent.EventType == RESET) {
 				printf("RESET in ServoRunning\n\r");
 				
 				// Return servo to original position
 				ResetServo();
+				CurrentPosition = SERVO_LOW;
+				IncrementsLeft = INCREMENTS;
 				
 				CurrentState = ServoStandby;
 			}
@@ -221,6 +207,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				// Return servo to original position
 				ResetServo();
 				CurrentPosition = SERVO_LOW;
+				IncrementsLeft = INCREMENTS;
 				
 				CurrentState = ServoStandby;
 			}
@@ -265,11 +252,11 @@ void ServoInitialize( void)
 
 void IncrementServo( void) {
 	
-	
-	
+	ServoIncrement = (CurrentPosition - SERVO_HIGH) / IncrementsLeft;
+	IncrementsLeft -= 1;
 	CurrentPosition -= ServoIncrement;
-	if (CurrentPosition <= 180) {
-		//printf("Incrementing servo to %d...\n\r", CurrentPosition);
+	if (CurrentPosition <= 180 && IncrementsLeft <= INCREMENTS) {  // When IncrementsLeft drops below 0, it will wrap around to a high positive integer
+		printf("Incrementing servo to %d... ServoIncrement is %d\n\r", CurrentPosition, ServoIncrement);
 		ServoPWM(CurrentPosition,0,1);
 	}
 }
@@ -281,3 +268,62 @@ void ResetServo( void) {
 	//ES_Timer_StopTimer(1);
 	ES_Timer_StopTimer(2);
 }
+
+/*
+void Servo_test(void)
+{
+	
+	PWM_TIVA_Init(3); 
+
+//	uint32_t duty_cycle;
+			
+	uint32_t pulse_width;
+
+			
+PWM_TIVA_SetPeriod(period, FAN_GROUP);
+	
+ uint32_t i;
+   
+for(i = 0;i<10000;i = i+10)
+	{
+				
+//		duty_cycle = i;
+			
+//		pulse_width = abs(BASE_PULSE_WIDTH+ pot_voltage*(double)((double)(PULSE_WIDTH_RANGE)/(double)MAX_POT_OUTPUT));
+//			PWM_TIVA_SetDuty(duty_cycle,FAN_CHANNEL);
+//			printf("duty_cycle = %u\r\n",duty_cycle);
+		
+		int pulse_base;
+		printf("Enter pulse base: ");
+		scanf("%d", &pulse_base);
+		
+		pulse_width = pulse_base; //+i;
+		PWM_TIVA_SetPulseWidth( pulse_width,FAN_CHANNEL);
+		printf("pulse_width = %u\r\n",pulse_width);
+		
+	while(kbhit()!=1)
+
+	{
+
+	}
+	getchar(); 
+
+
+	}
+}
+
+#ifdef FAN_TEST
+#include "termio.h"
+
+int main(void)
+{
+
+	
+		TERMIO_Init();
+			puts("\r\n In test harness for Module\r\n");
+	
+	Fan_test(1);
+
+}
+#endif
+*/
