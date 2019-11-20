@@ -50,7 +50,7 @@
 #define IR_MID_HI BIT4HI
 #define IR_MID_LO BIT4LO
 
-#define HOLD_TIME 1000
+#define HOLD_TIME 3000
 
 
 /*---------------------------- Module Functions ---------------------------*/
