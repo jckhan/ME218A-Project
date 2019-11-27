@@ -492,6 +492,54 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Fan.c</FilePath>
             </File>
+            <File>
+              <FileName>Fan_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Fan_test.c</FilePath>
+              <FileOption>
+                <CommonProperty>
+                  <UseCPPCompiler>2</UseCPPCompiler>
+                  <RVCTCodeConst>0</RVCTCodeConst>
+                  <RVCTZI>0</RVCTZI>
+                  <RVCTOtherData>0</RVCTOtherData>
+                  <ModuleSelection>0</ModuleSelection>
+                  <IncludeInBuild>0</IncludeInBuild>
+                  <AlwaysBuild>2</AlwaysBuild>
+                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
+                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
+                  <PublicsOnly>2</PublicsOnly>
+                  <StopOnExitCode>11</StopOnExitCode>
+                  <CustomArgument></CustomArgument>
+                  <IncludeLibraryModules></IncludeLibraryModules>
+                  <ComprImg>1</ComprImg>
+                </CommonProperty>
+                <FileArmAds>
+                  <Cads>
+                    <interw>2</interw>
+                    <Optim>0</Optim>
+                    <oTime>2</oTime>
+                    <SplitLS>2</SplitLS>
+                    <OneElfS>2</OneElfS>
+                    <Strict>2</Strict>
+                    <EnumInt>2</EnumInt>
+                    <PlainCh>2</PlainCh>
+                    <Ropi>2</Ropi>
+                    <Rwpi>2</Rwpi>
+                    <wLevel>2</wLevel>
+                    <uThumb>2</uThumb>
+                    <uSurpInc>2</uSurpInc>
+                    <uC99>2</uC99>
+                    <useXO>2</useXO>
+                    <VariousControls>
+                      <MiscControls></MiscControls>
+                      <Define></Define>
+                      <Undefine></Undefine>
+                      <IncludePath></IncludePath>
+                    </VariousControls>
+                  </Cads>
+                </FileArmAds>
+              </FileOption>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -636,6 +684,21 @@
               <FileName>Fan.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\Fan.h</FilePath>
+            </File>
+            <File>
+              <FileName>Fan_test.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Fan_test.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo_Actuator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo_Actuator.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1277,6 +1340,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Fan.c</FilePath>
             </File>
+            <File>
+              <FileName>Fan_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Fan_test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1421,6 +1489,21 @@
               <FileName>Fan.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\Fan.h</FilePath>
+            </File>
+            <File>
+              <FileName>Fan_test.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Fan_test.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo_Actuator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo_Actuator.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -2062,6 +2145,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\Fan.c</FilePath>
             </File>
+            <File>
+              <FileName>Fan_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Fan_test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2206,6 +2294,21 @@
               <FileName>Fan.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\Fan.h</FilePath>
+            </File>
+            <File>
+              <FileName>Fan_test.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Fan_test.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo.h</FilePath>
+            </File>
+            <File>
+              <FileName>Servo_Actuator.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\Servo_Actuator.h</FilePath>
             </File>
           </Files>
         </Group>

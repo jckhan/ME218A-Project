@@ -156,6 +156,12 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
+	static uint8_t increment = 0;
+	
+	if (ThisEvent.EventType != ES_TIMEOUT) {
+		ES_Timer_InitTimer(11, 30000);
+	}
+	
   switch (CurrentState)
   {
 		case BlowerStandby:
@@ -173,6 +179,7 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 				GameState_t GameState = QueryGame();
 				if (GameState == PingPong_Completed) {
 					printf("SPINNER_START in BlowerStandby\n\r");
+					increment = 0;
 					
 					// Turn off all LEDs
 					
@@ -198,6 +205,7 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 			
 			if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in NotBlowing\n\r");
+				increment = 0;
 				LED_on(0);
 				CurrentState = BlowerStandby;
 			}
@@ -222,10 +230,11 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 				
 				// Switch off LEDs
 				LED_on(0);
+				increment = 0;
 				CurrentState = BlowerStandby;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
-				static uint8_t increment = 0;
+				
 				if(ThisEvent.EventParam == 10){
 					AUDIO_SR_Write(BIT4HI);
 					AUDIO_SR_Write(BIT6HI);

@@ -21,8 +21,8 @@
 
 #include "PWM16Tiva.h"
 
-#define TowerProLimLow 650 //Lower Limit of pulse in ticks (1 tick = 0.8 microseconds)
-#define TowerProLimHigh 3000 //Upper Limit of pulse in ticks (1 tick = 0.8 microseconds)
+#define TowerProLimLow 700 //Lower Limit of pulse in ticks (1 tick = 0.8 microseconds)
+#define TowerProLimHigh 2900 //Upper Limit of pulse in ticks (1 tick = 0.8 microseconds)
 #define clrScrn() printf("\x1b[2J")
 
 void ServoPinInit(uint8_t HowMany){ //Takes input how many PWM channels we need (Each channel activates two pins [called 'groups'], this is a hardware limitation)

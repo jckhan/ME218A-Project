@@ -50,7 +50,7 @@
 #define IR_MID_HI BIT4HI
 #define IR_MID_LO BIT4LO
 
-#define HOLD_TIME 3000
+#define HOLD_TIME 1000
 
 
 /*---------------------------- Module Functions ---------------------------*/
@@ -153,6 +153,10 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
+	if (ThisEvent.EventType != ES_TIMEOUT) {
+		ES_Timer_InitTimer(11, 30000);
+	}
+	
   switch (CurrentState)
   {
 		case PPStandby:
@@ -186,6 +190,7 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 			}
 			else if (ThisEvent.EventType == FALLING_TOP) {
 				printf("FALLING_TOP in Neutral\n\r");
+				ES_Timer_InitTimer(13, 300);
 				
 				// Init 3s timer
 				printf("Starting timer (3s)...\n\r");
@@ -269,13 +274,26 @@ ES_Event_t RunPingPong(ES_Event_t ThisEvent)
 				
 				CurrentState = Top;
 			}
-			else if (ThisEvent.EventType == RISING_TOP) {
+			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 13) {
 				printf("RISING_Top in Top\n\r");
 				AUDIO_SR_Write(BIT4LO);
 				ES_Timer_InitTimer(10, 140);
 				CurrentState = Neutral;
 			}
 			
+			else if (ThisEvent.EventType == FALLING_TOP) {
+				printf("Repeated FALLING_TOP in Top\n\r");
+				ES_Timer_InitTimer(13, 300);
+				CurrentState = Top;
+			}
+			/*
+			else if (ThisEvent.EventType == RISING_TOP) {
+				printf("RISING_Top in Top\n\r");
+				AUDIO_SR_Write(BIT4LO);
+				ES_Timer_InitTimer(10, 140);
+				CurrentState = Neutral;
+			}
+			*/
 			else if (ThisEvent.EventType == SPINNER_STOP) {
 				printf("SPINNER_STOP in Top\n\r");
 				CurrentState = PPStandby;
@@ -336,21 +354,31 @@ bool CheckPingPongEvents( void) {
 	  ES_Timer_InitTimer(10, 140);
       ReturnVal = true;
   }
-	
+	/*
 	if (CurrentTopState != LastTopState) {
       if (CurrentTopState) {
-				printf("High\r\n");
+				//printf("High\r\n");
         ES_Event_t ThisEvent;
         ThisEvent.EventType = RISING_TOP;
         PostPingPong(ThisEvent);
       }
       else {
-				printf("Low\r\n");
+				//printf("Low\r\n");
         ES_Event_t ThisEvent;
         ThisEvent.EventType = FALLING_TOP;
         PostPingPong(ThisEvent);
       }
       ReturnVal = true;
+  }
+	*/
+	if (CurrentTopState != LastTopState) {
+			if(CurrentTopState == 0) {
+				ES_Event_t ThisEvent;
+				ThisEvent.EventType = FALLING_TOP;
+				PostPingPong(ThisEvent);
+				printf("posting falling top\n\r");
+				ReturnVal = true;
+			}
   }
 	
   LastMiddleState = CurrentMiddleState;
@@ -365,13 +393,13 @@ bool CheckPingPongEvents( void) {
 
 // Initialize the input lines to check for the middle and top IR LEDs
 static void PingPongInitialize( void) {
-	// set up port C by enabling the peripheral clock,
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2;
+//	// set up port C by enabling the peripheral clock,
+//  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2;
 
-  //wait for the clock to be ready
-  while ( (HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2 )
-  {
-  }
+//  //wait for the clock to be ready
+//  while ( (HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2 )
+//  {
+//  }
 
   // set PB3 and PB4 to be used as digital I/O
   HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (IR_TOP_HI | IR_MID_HI) ;

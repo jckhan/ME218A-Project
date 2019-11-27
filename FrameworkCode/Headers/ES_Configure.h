@@ -355,10 +355,10 @@ typedef enum
 #define TIMER8_RESP_FUNC PostGame
 #define TIMER9_RESP_FUNC PostPingPong
 #define TIMER10_RESP_FUNC ES_PostAll
-#define TIMER11_RESP_FUNC TIMER_UNUSED
-#define TIMER12_RESP_FUNC TIMER_UNUSED
-#define TIMER13_RESP_FUNC TIMER_UNUSED
-#define TIMER14_RESP_FUNC TIMER_UNUSED
+#define TIMER11_RESP_FUNC PostTOT	// idle timer
+#define TIMER12_RESP_FUNC ES_PostAll
+#define TIMER13_RESP_FUNC PostPingPong 
+#define TIMER14_RESP_FUNC PostTOT  // TIMING SERVO RESET TIMER
 #define TIMER15_RESP_FUNC TIMER_UNUSED
 
 /****************************************************************************/
