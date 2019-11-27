@@ -49,15 +49,7 @@ int main(void)
       | SYSCTL_XTAL_16MHZ);
   TERMIO_Init();
   clrScrn();
-	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
-	while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
-	}
-	HWREG(SYSCTL_RCGCGPIO) |= BIT0HI; //Enable port A
-	while ((HWREG(SYSCTL_PRGPIO) & BIT0HI) != BIT0HI){
-	}
-	HWREG(SYSCTL_RCGCGPIO) |= BIT4HI; //Enable port E
-	while ((HWREG(SYSCTL_PRGPIO) & BIT4HI) != BIT4HI){
-	}	
+	
   // When doing testing, it is useful to announce just which program
   // is running.
   puts("\rStarting Test Harness for \r");
@@ -65,8 +57,6 @@ int main(void)
   printf( "%s %s\n", __TIME__, __DATE__);
   printf( "\n\r\n");
   printf( "Press any key to post key-stroke events to Service 0\n\r");
-//  printf( "Press 'd' to test event deferral \n\r");
-//  printf( "Press 'r' to test event recall \n\r");
 
   // reprogram the ports that are set as alternate functions or
   // locked coming out of reset. (PA2-5, PB2-3, PD7, PF0)
@@ -76,6 +66,15 @@ int main(void)
   PortFunctionInit();
 
   // Your hardware initialization function calls go here
+	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
+	while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
+	}
+	HWREG(SYSCTL_RCGCGPIO) |= BIT0HI; //Enable port A
+	while ((HWREG(SYSCTL_PRGPIO) & BIT0HI) != BIT0HI){
+	}
+	HWREG(SYSCTL_RCGCGPIO) |= BIT4HI; //Enable port E
+	while ((HWREG(SYSCTL_PRGPIO) & BIT4HI) != BIT4HI){
+	}	
 
   // now initialize the Events and Services Framework and start it running
   ErrorType = ES_Initialize(ES_Timer_RATE_1mS);

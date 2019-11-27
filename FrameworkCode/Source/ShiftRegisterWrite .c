@@ -95,9 +95,6 @@ bool CheckHiLo(uint8_t data){
 
 }
 
-// Create your own function header comment
-	
-
 void LED_SR_Write(uint8_t NewValue){
 	static uint8_t LocalRegisterImage=0;
 	//printf("First Register Image %d\n\r", LocalRegisterImage);
@@ -162,3 +159,19 @@ void AUDIO_SR_Write(uint8_t NewValue){
 //printf("written %d\n\r",LocalRegisterImage);
 }
 
+void StopLEDs(void) {
+	LED_SR_Write(BIT0LO);		// Blower 1
+	LED_SR_Write(BIT1LO);		// Blower 2
+	LED_SR_Write(BIT2LO);		// Blower 3
+	LED_SR_Write(BIT3LO);		// Blower 4
+	LED_SR_Write(BIT4LO); 	// Pingpong middle
+	LED_SR_Write(BIT5LO);		// Pingpong top
+}
+
+void StopAudio(void) {
+	AUDIO_SR_Write(BIT3HI);
+	AUDIO_SR_Write(BIT4HI);
+	AUDIO_SR_Write(BIT5HI);
+	AUDIO_SR_Write(BIT6HI);
+	AUDIO_SR_Write(BIT7HI);
+}
