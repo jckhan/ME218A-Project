@@ -47,12 +47,18 @@
 #define TOT_LO BIT0LO
 #define SERVO_HI BIT1HI
 #define SERVO_LO BIT1LO
+#define BUTTON_HI BIT3HI
+#define BUTTON_LO BIT3LO
 
 #define NEXTGAMETIME 4500
 #define AUDIO_TIME 140
+#define IDLE_TIME 30000
+#define WELCOME_TIME 1000
+#define SERVO_RESET_TIME 500
 
-#define TRAPDOOR_OPEN 160
-#define TRAPDOOR_CLOSED 0
+#define TRAPDOOR_OPEN 180
+#define TRAPDOOR_CLOSED 1
+#define TIMING_SERVO_LOW 180
 
 #define WELCOME_LO BIT7LO
 #define WELCOME_HI BIT7HI
@@ -74,6 +80,7 @@ static uint8_t GetTOTState( void);
 // type of state variable should match htat of enum in header file
 static TOTState_t CurrentState;
 static uint8_t LastTOTState;
+static uint8_t WelcomeIncrement;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -165,6 +172,15 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+	
+	// First check if there has been no activity for the idle time
+	if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == IDLE_TIMER) {
+		ES_Event_t Event2Post;
+		Event2Post.EventType = RESET;
+		ES_PostAll(Event2Post);
+	} else {
+		ES_Timer_InitTimer(IDLE_TIMER, IDLE_TIME);
+	}
 
   switch (CurrentState)
   {
@@ -172,23 +188,88 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 		{
 			if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
+				WelcomeIncrement = 0;
+				ES_Timer_InitTimer(WELCOME_TIMER, WELCOME_TIME);
         CurrentState = NoTOT;
-				break;
       }
-			else if (ThisEvent.EventType == TOT_DETECTED) {				
+			else if (ThisEvent.EventType == TOT_DETECTED) {
+				WelcomeIncrement = 0;
+				StopLEDs();
+				
 				ES_Event_t Event2Post;
 				Event2Post.EventType = START_POTATO;
 				ES_PostAll(Event2Post);
 				
 				// Play the welcome message
 				AUDIO_SR_Write(WELCOME_LO);
-				ES_Timer_InitTimer(AUDIO_TIMER, AUDIO_TIME);	
+				ES_Timer_InitTimer(AUDIO_TIMER, AUDIO_TIME);
+				ES_Timer_InitTimer(IDLE_TIMER, IDLE_TIME);
 
 				CurrentState = YesTOT;
 			}
+			// Welcome Mode sequence
+			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == 12) {
+				uint8_t Remainder = WelcomeIncrement % 9;
+				
+				switch (Remainder) {
+					case 0:
+					{
+						StopLEDs();
+						break;
+					}
+					case 1:
+					{
+						LED_SR_Write(BIT4HI);
+						break;
+					}
+					case 2:
+					{
+						LED_SR_Write(BIT5HI);
+						break;
+					}
+					case 3:
+					{
+						LED_SR_Write(BIT0HI);
+						break;
+					}
+					case 4:
+					{
+						LED_SR_Write(BIT1HI);
+						break;
+					}
+					case 5:
+					{
+						LED_SR_Write(BIT2HI);
+						break;
+					}
+					case 6:
+					{
+						LED_SR_Write(BIT3HI);
+						break;
+					}
+					case 7:
+					{
+						StopLEDs();
+						break;
+					}
+					case 8:
+					{
+						LED_SR_Write(BIT0HI);		// Blower 1
+						LED_SR_Write(BIT1HI);		// Blower 2
+						LED_SR_Write(BIT2HI);		// Blower 3
+						LED_SR_Write(BIT3HI);		// Blower 4
+						LED_SR_Write(BIT4HI); 	// Pingpong middle
+						LED_SR_Write(BIT5HI);		// Pingpong top
+						break;
+					}
+				}
+				
+				WelcomeIncrement++;
+				ES_Timer_InitTimer(WELCOME_TIMER, WELCOME_TIME);
+			}
 			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == SERVO_RESET_TIMER){
 				// Reset the position of the system timer servo
-				ServoPWM(180,0,1);
+				ServoPWM(TIMING_SERVO_LOW,0,1);
 			}
 			break;
 		}
@@ -201,8 +282,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 				ES_PostAll(Event2Post);
 				
 				// Init timer for next game
-				ES_Timer_InitTimer(TOT_TIMER, NEXTGAMETIME);
-				ReleaseTOT();
+				ES_Timer_InitTimer(TOT_TIMER, 1000);
 				CurrentState = Waiting4NextGame;
 			}
 			else if (ThisEvent.EventType == ES_TIMEOUT) {
@@ -220,7 +300,7 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					ES_Timer_InitTimer(TOT_TIMER, NEXTGAMETIME);
 					CurrentState = Waiting4NextGame;
 				}
-				}
+			}
 			else if (ThisEvent.EventType == GAME_COMPLETED) {				
 				ES_Event_t Event2Post;
 				Event2Post.EventType = END_POTATO;
@@ -253,17 +333,50 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					
 					AUDIO_SR_Write(GOODBYE_LO);
 					ES_Timer_InitTimer(AUDIO_TIMER, AUDIO_TIME);
+					
+					CurrentState = Waiting4NextGame;
 				}
 				else if (ThisEvent.EventParam == TOT_TIMER){
 					ServoPWM(TRAPDOOR_CLOSED,0,0);
 					StopAudio();
 					StopLEDs();
+					
+					WelcomeIncrement = 0;
+					ES_Timer_InitTimer(WELCOME_TIMER, WELCOME_TIME);
+					
+					ES_Timer_InitTimer(SERVO_RESET_TIMER, SERVO_RESET_TIME);
+					
 					CurrentState = NoTOT;
 				}
-				else if (ThisEvent.EventParam == SERVO_RESET_TIMER){
-					// Reset the position of the system timer servo
-					ServoPWM(180,0,1);
-				}
+			}
+			else if (ThisEvent.EventType == TOT_DETECTED) {				
+				ServoPWM(TRAPDOOR_CLOSED,0,0);
+				StopAudio();
+				StopLEDs();
+					
+				ES_Timer_InitTimer(WELCOME_TIMER, WELCOME_TIME);
+				
+				WelcomeIncrement = 0;
+							
+				ES_Event_t Event2Post;
+				Event2Post.EventType = START_POTATO;
+				ES_PostAll(Event2Post);
+				
+				AUDIO_SR_Write(WELCOME_LO);
+				ES_Timer_InitTimer(AUDIO_TIMER, AUDIO_TIME);
+				ES_Timer_InitTimer(IDLE_TIMER, IDLE_TIME);				
+		
+				CurrentState = YesTOT;
+			}
+			else if (ThisEvent.EventType == TOT_REMOVED) {				
+				ES_Event_t Event2Post;
+				Event2Post.EventType = END_POTATO;
+				ES_PostAll(Event2Post);
+
+				//init timer for next game
+				ES_Timer_InitTimer(TOT_TIMER, 1000);
+
+				CurrentState = Waiting4NextGame;
 			}
 			break;
 		}
@@ -302,8 +415,10 @@ TOTState_t QueryTOT(void)
 //Initialization sequence for the TOT state machine
 void TOTInitialize( void) {
 	// Initialize a data line as the input for the coin sensor
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (TOT_HI | SERVO_HI); //Digital Enable pins 0 through 1
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (TOT_LO & SERVO_LO); //Set pins 0 and 1 to inputs
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (TOT_HI | SERVO_HI | BUTTON_HI); //Digital Enable pins 0 through 1
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (TOT_LO & SERVO_LO & BUTTON_LO); //Set pins 0 and 1 to inputs
+	HWREG(GPIO_PORTB_BASE+GPIO_O_PUR) |= BUTTON_HI;// set PB3 internal pull-up
+
 	
 	// Initialize the control line for the trapdoor servo
 	ServoPinInit(2); //Need 2 servos, channel 0 will be TOT system, channel 1 will be Timer System [BOTH ARE GROUP 0]
@@ -331,10 +446,21 @@ uint8_t GetTOTState( void) {
   }
 }
 
+// Checks the state of the reset button
+uint8_t GetResetState( void) {
+  uint8_t InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
+  if (InputState & BUTTON_HI) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 // Event checker for the coin sensor; return true if the state has changed
 bool CheckTOTEvents( void){
   bool ReturnVal = false;
   uint8_t CurrentTOTState = GetTOTState();
+	uint8_t CurrentResetState = GetResetState();
 	
   if (CurrentTOTState != LastTOTState) {
       if (CurrentTOTState) {
@@ -352,6 +478,15 @@ bool CheckTOTEvents( void){
 
       ReturnVal = true;
   }
+	
+	// Button event checker
+	if (CurrentResetState == 0) {
+			ES_Event_t ThisEvent;
+			ThisEvent.EventType = RESET;
+			ES_PostAll(ThisEvent);
+      ReturnVal = true;
+  }
+	
   LastTOTState = CurrentTOTState;
   return ReturnVal;
 }

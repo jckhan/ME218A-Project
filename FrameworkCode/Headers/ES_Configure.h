@@ -376,6 +376,7 @@ typedef enum
 #define PINGPONG_TIMER 		9
 #define AUDIO_TIMER 			10
 #define IDLE_TIMER 				11
+#define WELCOME_TIMER			12
 #define HACKY_TIMER 			13
 #define SERVO_RESET_TIMER 14
 

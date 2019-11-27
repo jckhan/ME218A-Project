@@ -39,6 +39,9 @@
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
+static void ResetServo(void);
+static void IncrementServo(void);
+static void ServoInitialize(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -247,10 +250,9 @@ void IncrementServo( void) {
 
 void ResetServo( void) {
 	// NOTE: the servo reset function is writte in this way because the timer servo and trapdoor servo conflict with each other if both try to move
-	// at the same time. We implemented a workaround by having the servo acrtually reset (in the Waiting4NextGame state in TOT.c) after a waiting time.
-	// The timer for that waiting time is initialized here.
+	// at the same time. We implemented a workaround by having the servo actually reset (in the NoTOT state in TOT.c) after a waiting time.
+	// The timer for that waiting time is initialized in the Waiting4NextGame state in TOT.c
 	
 	CurrentPosition = SERVO_LOW;	// Reset the servo position so it will goes to that position the next time it moves
 	ES_Timer_StopTimer(SERVO_TIMER);
-	ES_Timer_InitTimer(SERVO_RESET_TIMER, RESET_TIME);
 }
