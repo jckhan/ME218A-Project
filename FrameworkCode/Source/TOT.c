@@ -186,6 +186,10 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 
 				CurrentState = YesTOT;
 			}
+			else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == SERVO_RESET_TIMER){
+				// Reset the position of the system timer servo
+				ServoPWM(180,0,1);
+			}
 			break;
 		}
 		
@@ -256,6 +260,10 @@ ES_Event_t RunTOT(ES_Event_t ThisEvent)
 					StopLEDs();
 					CurrentState = NoTOT;
 				}
+				else if (ThisEvent.EventParam == SERVO_RESET_TIMER){
+					// Reset the position of the system timer servo
+					ServoPWM(180,0,1);
+				}
 			}
 			break;
 		}
@@ -293,7 +301,7 @@ TOTState_t QueryTOT(void)
 
 //Initialization sequence for the TOT state machine
 void TOTInitialize( void) {
-	// Initialize a data line as the input for the TOT IR
+	// Initialize a data line as the input for the coin sensor
 	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (TOT_HI | SERVO_HI); //Digital Enable pins 0 through 1
 	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= (TOT_LO & SERVO_LO); //Set pins 0 and 1 to inputs
 	

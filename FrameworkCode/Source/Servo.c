@@ -28,8 +28,11 @@
 /*----------------------------- Module Defines ----------------------------*/
 #define SERVO_LOW 180
 #define SERVO_HIGH 120
+
 #define TOTAL_TIME 65000
 #define SHORT_TIME 1000
+#define RESET_TIME 500
+
 #define INCREMENTS 65
 
 /*---------------------------- Module Functions ---------------------------*/
@@ -195,7 +198,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 		}
 		default:
       ;
-  }                                   // end switch on Current State
+  } // end switch on Current State
   return ReturnEvent;
 }
 
@@ -244,7 +247,10 @@ void IncrementServo( void) {
 
 void ResetServo( void) {
 	// NOTE: the servo reset function is writte in this way because the timer servo and trapdoor servo conflict with each other if both try to move
-	// at the same time. We implemented a workaround 
+	// at the same time. We implemented a workaround by having the servo acrtually reset (in the Waiting4NextGame state in TOT.c) after a waiting time.
+	// The timer for that waiting time is initialized here.
+	
 	CurrentPosition = SERVO_LOW;	// Reset the servo position so it will goes to that position the next time it moves
 	ES_Timer_StopTimer(SERVO_TIMER);
+	ES_Timer_InitTimer(SERVO_RESET_TIMER, RESET_TIME);
 }

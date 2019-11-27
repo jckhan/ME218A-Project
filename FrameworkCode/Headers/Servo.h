@@ -1,6 +1,6 @@
 /****************************************************************************
 
-  Header file for template Flat Sate Machine
+  Header file for the servo state machine
   based on the Gen2 Events and Services Framework
 
  ****************************************************************************/

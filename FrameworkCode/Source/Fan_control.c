@@ -23,8 +23,6 @@
 #include "ADMulti.h"
 #include "Fan.h"
 
-static void Fan_pot_control(void);
-
 uint32_t Pot_ConversionResults[1];
 //Initialize PWM module on specific bits
  //Jad already initialized this, Use PC4 for fan motor
