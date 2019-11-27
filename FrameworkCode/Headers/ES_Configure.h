@@ -375,6 +375,8 @@ typedef enum
 
 #define PINGPONG_TIMER 9
 #define AUDIO_TIMER 10
+#define IDLE_TIMER 11
+#define HACKY_TIMER 13
 
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on

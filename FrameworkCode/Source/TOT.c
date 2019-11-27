@@ -24,31 +24,36 @@
 #include "ES_Framework.h"
 #include "TOT.h"
 #include "Servo_Actuator.h"
+#include "PWM16Tiva.h"
+#include "ShiftRegisterWrite.h"
 #include "ES_Port.h"
 #include "termio.h"
 #include "EnablePA25_PB23_PD7_PF0.h"
+
+// the headers to access the GPIO subsystem
 #include "inc/hw_gpio.h"
 #include "inc/hw_types.h"
 #include "inc/hw_pwm.h"
 #include "inc/hw_memmap.h"
+#include "inc/hw_sysctl.h"
+
+// the headers to access the TivaWare Library
 #include "driverlib/sysctl.h"
 #include "driverlib/pin_map.h"
 #include "driverlib/gpio.h"
-#include "inc/hw_types.h"
-#include "driverlib/sysctl.h"
-#include "inc/hw_sysctl.h"
-#include "PWM16Tiva.h"
-#include "ShiftRegisterWrite.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define TOT_HI BIT0HI
 #define TOT_LO BIT0LO
 #define SERVO_HI BIT1HI
 #define SERVO_LO BIT1LO
+
 #define NEXTGAMETIME 4500
 #define AUDIO_TIME 140
+
 #define TRAPDOOR_OPEN 160
 #define TRAPDOOR_CLOSED 0
+
 #define WELCOME_LO BIT7LO
 #define WELCOME_HI BIT7HI
 #define SUCCESS_LO BIT6LO
@@ -286,10 +291,7 @@ TOTState_t QueryTOT(void)
  private functions
  ***************************************************************************/
 
-/***************************************************************************
-Function: TOTInitialize
-Initialization sequence for the TOT state machine
-****************************************************************************/
+//Initialization sequence for the TOT state machine
 void TOTInitialize( void) {
 	// Initialize a data line as the input for the TOT IR
 	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (TOT_HI | SERVO_HI); //Digital Enable pins 0 through 1
@@ -304,19 +306,14 @@ void TOTInitialize( void) {
 	StopAudio();
 }
 
-/***************************************************************************
-Function: ReleaseTOT
-Sets the trapdoor servo to the open position
-****************************************************************************/
+//Sets the trapdoor servo to the open position
 void ReleaseTOT( void) {
 	ServoPWM(TRAPDOOR_OPEN,0,0);
 }
 
-/***************************************************************************
-Function: GetTOTState
-Checks the state of the coin sensor and returns 1 if a TOT is present, 0 if
-the TOT is absent
-****************************************************************************/
+
+//Checks the state of the coin sensor and returns 1 if a TOT is present, 0 if
+//the TOT is absent
 uint8_t GetTOTState( void) {
   uint8_t InputState  = HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS));
   if (InputState & TOT_HI) {
@@ -326,11 +323,7 @@ uint8_t GetTOTState( void) {
   }
 }
 
-/***************************************************************************
-Function: CheckTOTEvents
-This is the event checker for the coin sensor
-Returns true if the state of the coin sensor has changed
-****************************************************************************/
+// Event checker for the coin sensor; return true if the state has changed
 bool CheckTOTEvents( void){
   bool ReturnVal = false;
   uint8_t CurrentTOTState = GetTOTState();
