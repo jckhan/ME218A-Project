@@ -368,15 +368,15 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define TOT_TIMER 1
-
+#define TOT_TIMER 				1
+#define SERVO_TIMER 			2
 #define BLOWING_LED_TIMER 6
-#define BLOWING_TIMER 7
+#define BLOWING_TIMER 		7
 
-#define PINGPONG_TIMER 9
-#define AUDIO_TIMER 10
-#define IDLE_TIMER 11
-#define HACKY_TIMER 13
+#define PINGPONG_TIMER 		9
+#define AUDIO_TIMER 			10
+#define IDLE_TIMER 				11
+#define HACKY_TIMER 			13
 
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
