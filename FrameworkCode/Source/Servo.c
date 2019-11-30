@@ -1,23 +1,20 @@
 /****************************************************************************
  Module
-   TemplateFSM.c
+   Servo.c
 
  Revision
    1.0.1
 
  Description
-   This is a template file for implementing flat state machines under the
-   Gen2 Events and Services Framework.
+   This is the state machine to control the TOT servo and the system timer 
+	 servo under the Gen2 Events and Services Framework.
 
  Notes
 
  History
- When           Who     What/Why
- -------------- ---     --------
- 01/15/12 11:12 jec      revisions for Gen2 framework
- 11/07/11 11:26 jec      made the queue static
- 10/30/11 17:59 jec      fixed references to CurrentEvent in RunTemplateSM()
- 10/23/11 18:20 jec      began conversion from SMTemplate.c (02/20/07 rev)
+ When           Who     
+ -------------- ---     
+ 11/27/19 12:12 Jack Han      
 ****************************************************************************/
 /*----------------------------- Include Files -----------------------------*/
 /* include header files for this state machine as well as any machines at the
@@ -25,31 +22,31 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "ES_ShortTimer.h"
 #include "Servo.h"
 #include "Servo_actuator.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define SERVO_LOW 180
 #define SERVO_HIGH 120
+
 #define TOTAL_TIME 65000
 #define SHORT_TIME 1000
+#define RESET_TIME 500
+
 #define INCREMENTS 65
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-//void ServoInitialize( void);
-//void IncrementServo( void);
-//void ResetServo( void);
+static void ResetServo(void);
+static void IncrementServo(void);
+static void ServoInitialize(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static ServoState_t CurrentState;
-//static uint16_t NumIncrements = TOTAL_TIME / SHORT_TIME;
-//static uint16_t ServoIncrement = (SERVO_LOW - SERVO_HIGH) / INCREMENTS;
 static uint16_t ServoIncrement;
 static uint16_t IncrementsLeft = INCREMENTS;
 static uint16_t CurrentPosition = SERVO_LOW;
@@ -60,7 +57,7 @@ static uint8_t MyPriority;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
-     InitTemplateFSM
+     InitServo
 
  Parameters
      uint8_t : the priorty of this service
@@ -74,7 +71,7 @@ static uint8_t MyPriority;
  Notes
 
  Author
-     J. Edward Carryer, 10/23/11, 18:55
+ Jack Han, 11/27/19, 12:13
 ****************************************************************************/
 bool InitServo(uint8_t Priority)
 {
@@ -83,11 +80,10 @@ bool InitServo(uint8_t Priority)
   MyPriority = Priority;
 	
 	ServoInitialize();
-	
-	ES_ShortTimerInit(MyPriority, SHORT_TIMER_UNUSED );
-	
-  // put us into the Initial PseudoState
+		
+  // put us into the initial state
   CurrentState = ServoStandby;
+	
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -102,7 +98,7 @@ bool InitServo(uint8_t Priority)
 
 /****************************************************************************
  Function
-     PostTemplateFSM
+     PostServo
 
  Parameters
      EF_Event_t ThisEvent , the event to post to the queue
@@ -115,7 +111,7 @@ bool InitServo(uint8_t Priority)
  Notes
 
  Author
-     J. Edward Carryer, 10/23/11, 19:25
+     Jack Han, 11/27/19, 12:13
 ****************************************************************************/
 bool PostServo(ES_Event_t ThisEvent)
 {
@@ -124,7 +120,7 @@ bool PostServo(ES_Event_t ThisEvent)
 
 /****************************************************************************
  Function
-    RunTemplateFSM
+    RunServo
 
  Parameters
    ES_Event_t : the event to process
@@ -137,7 +133,7 @@ bool PostServo(ES_Event_t ThisEvent)
  Notes
    uses nested switch/case to implement the machine.
  Author
-   J. Edward Carryer, 01/15/12, 15:23
+   Jack Han, 11/27/19, 12:13
 ****************************************************************************/
 ES_Event_t RunServo(ES_Event_t ThisEvent)
 {
@@ -154,16 +150,13 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				break;
       }
 			else if (ThisEvent.EventType == TOT_DETECTED) {
-				printf("TOT_DETECTED in ServoStandby\n\r");
 				ResetServo();
 				CurrentPosition = SERVO_LOW;
-				// Init short timer 50ms
-				printf("Starting timer (50ms)...\n\r");
-				ES_Timer_InitTimer(2, SHORT_TIME);
+				// Init short timer 
+				ES_Timer_InitTimer(SERVO_TIMER, SHORT_TIME);
 				
-				// Init long timer 60s
-				printf("Starting timer (60s)...\n\r");
-				ES_Timer_InitTimer(1, TOTAL_TIME);
+				// Init system timer for the POTATO
+				ES_Timer_InitTimer(TOT_TIMER, TOTAL_TIME);
 				
 				CurrentState = ServoRunning;
 			}
@@ -173,12 +166,9 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 		case ServoRunning:
 		{
 			if (ThisEvent.EventType == TOT_REMOVED) {
-				printf("TOT_REMOVED in ServoRunning\n\r");
-				
-				// Return servo to original position
-				//ResetServo();
-				CurrentPosition = SERVO_LOW;
-				IncrementsLeft = INCREMENTS;
+
+				CurrentPosition = SERVO_LOW;	// Next time the timing servo moves, it will reset 
+				IncrementsLeft = INCREMENTS;  // Reset the number of increments
 				
 				CurrentState = ServoStandby;
 			}
@@ -186,14 +176,12 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 					// Increment servo
 					IncrementServo();
 					
-					// Init short timer 500ms
-					ES_Timer_InitTimer(2, SHORT_TIME);
+					// Init short timer 
+					ES_Timer_InitTimer(SERVO_TIMER, SHORT_TIME);
 					
 					CurrentState = ServoRunning;		
 			}
-			else if (ThisEvent.EventType == RESET) {
-				printf("RESET in ServoRunning\n\r");
-				
+			else if (ThisEvent.EventType == RESET) {				
 				// Return servo to original position
 				ResetServo();
 				CurrentPosition = SERVO_LOW;
@@ -202,8 +190,6 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 				CurrentState = ServoStandby;
 			}
 			else if (ThisEvent.EventType == END_POTATO) {
-				printf("END_POTATO in ServoRunning\n\r");
-				
 				// Return servo to original position
 				ResetServo();
 				CurrentPosition = SERVO_LOW;
@@ -215,13 +201,13 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
 		}
 		default:
       ;
-  }                                   // end switch on Current State
+  } // end switch on Current State
   return ReturnEvent;
 }
 
 /****************************************************************************
  Function
-     QueryTemplateSM
+     QueryServo
 
  Parameters
      None
@@ -234,7 +220,7 @@ ES_Event_t RunServo(ES_Event_t ThisEvent)
  Notes
 
  Author
-     J. Edward Carryer, 10/23/11, 19:21
+     Jack Han, 11/27/19, 12:13
 ****************************************************************************/
 ServoState_t QueryServo(void)
 {
@@ -244,86 +230,29 @@ ServoState_t QueryServo(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
+
+// Initialization sequence for the servo pins
 void ServoInitialize( void) 
 {
-	// Initialize the control line for the trapdoor servo
+	// Set the timer servo to its default position
 	ServoPWM(SERVO_LOW,0,1); //This is PB6
 }
 
+// Move the servo by the predefined increment
 void IncrementServo( void) {
-	
 	ServoIncrement = (CurrentPosition - SERVO_HIGH) / IncrementsLeft;
 	IncrementsLeft -= 1;
 	CurrentPosition -= ServoIncrement;
 	if (CurrentPosition <= 180 && IncrementsLeft <= INCREMENTS) {  // When IncrementsLeft drops below 0, it will wrap around to a high positive integer
-		printf("Incrementing servo to %d... ServoIncrement is %d\n\r", CurrentPosition, ServoIncrement);
 		ServoPWM(CurrentPosition,0,1);
 	}
 }
 
 void ResetServo( void) {
-	printf("Returning servo to original position...\n\r");
-	CurrentPosition = SERVO_LOW;
-	//ServoPWM(SERVO_LOW,0,1);//UNCOMMENTED THIS TO TEST
-	//ES_Timer_StopTimer(1);
-	ES_Timer_StopTimer(2);
+	// NOTE: the servo reset function is writte in this way because the timer servo and trapdoor servo conflict with each other if both try to move
+	// at the same time. We implemented a workaround by having the servo actually reset (in the NoTOT state in TOT.c) after a waiting time.
+	// The timer for that waiting time is initialized in the Waiting4NextGame state in TOT.c
+	
+	CurrentPosition = SERVO_LOW;	// Reset the servo position so it will goes to that position the next time it moves
+	ES_Timer_StopTimer(SERVO_TIMER);
 }
-
-/*
-void Servo_test(void)
-{
-	
-	PWM_TIVA_Init(3); 
-
-//	uint32_t duty_cycle;
-			
-	uint32_t pulse_width;
-
-			
-PWM_TIVA_SetPeriod(period, FAN_GROUP);
-	
- uint32_t i;
-   
-for(i = 0;i<10000;i = i+10)
-	{
-				
-//		duty_cycle = i;
-			
-//		pulse_width = abs(BASE_PULSE_WIDTH+ pot_voltage*(double)((double)(PULSE_WIDTH_RANGE)/(double)MAX_POT_OUTPUT));
-//			PWM_TIVA_SetDuty(duty_cycle,FAN_CHANNEL);
-//			printf("duty_cycle = %u\r\n",duty_cycle);
-		
-		int pulse_base;
-		printf("Enter pulse base: ");
-		scanf("%d", &pulse_base);
-		
-		pulse_width = pulse_base; //+i;
-		PWM_TIVA_SetPulseWidth( pulse_width,FAN_CHANNEL);
-		printf("pulse_width = %u\r\n",pulse_width);
-		
-	while(kbhit()!=1)
-
-	{
-
-	}
-	getchar(); 
-
-
-	}
-}
-
-#ifdef FAN_TEST
-#include "termio.h"
-
-int main(void)
-{
-
-	
-		TERMIO_Init();
-			puts("\r\n In test harness for Module\r\n");
-	
-	Fan_test(1);
-
-}
-#endif
-*/

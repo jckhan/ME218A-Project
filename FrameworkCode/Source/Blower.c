@@ -186,16 +186,6 @@ ES_Event_t RunBlower(ES_Event_t ThisEvent)
 					CurrentState = NotBlowing;
 				}				
 			}
-//			else if (ThisEvent.EventType == ES_TIMEOUT) {
-//				static uint8_t increment = 0;
-//				if(ThisEvent.EventParam == 10){
-//					AUDIO_SR_Write(BIT6HI);
-//					AUDIO_SR_Write(BIT4HI);
-//					AUDIO_SR_Write(BIT5HI);
-//					AUDIO_SR_Write(BIT3HI);
-//					AUDIO_SR_Write(BIT7HI);
-//				}
-//			}
 			break;
 		}
 		

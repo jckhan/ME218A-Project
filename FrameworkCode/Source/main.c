@@ -49,6 +49,23 @@ int main(void)
       | SYSCTL_XTAL_16MHZ);
   TERMIO_Init();
   clrScrn();
+	
+  // When doing testing, it is useful to announce just which program
+  // is running.
+  puts("\rStarting Test Harness for \r");
+  printf( "the 2nd Generation Events & Services Framework V2.4\r\n");
+  printf( "%s %s\n", __TIME__, __DATE__);
+  printf( "\n\r\n");
+  printf( "Press any key to post key-stroke events to Service 0\n\r");
+
+  // reprogram the ports that are set as alternate functions or
+  // locked coming out of reset. (PA2-5, PB2-3, PD7, PF0)
+  // After this call these ports are set
+  // as GPIO inputs and can be freely re-programmed to change config.
+  // or assign to alternate any functions available on those pins
+  PortFunctionInit();
+
+  // Your hardware initialization function calls go here
 	HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //Enable port B
 	while ((HWREG(SYSCTL_PRGPIO) & BIT1HI) != BIT1HI){
 	}
@@ -61,24 +78,6 @@ int main(void)
 	HWREG(SYSCTL_RCGCGPIO) |= BIT4HI; //Enable port E
 	while ((HWREG(SYSCTL_PRGPIO) & BIT4HI) != BIT4HI){
 	}	
-  // When doing testing, it is useful to announce just which program
-  // is running.
-  puts("\rStarting Test Harness for \r");
-  printf( "the 2nd Generation Events & Services Framework V2.4\r\n");
-  printf( "%s %s\n", __TIME__, __DATE__);
-  printf( "\n\r\n");
-  printf( "Press any key to post key-stroke events to Service 0\n\r");
-//  printf( "Press 'd' to test event deferral \n\r");
-//  printf( "Press 'r' to test event recall \n\r");
-
-  // reprogram the ports that are set as alternate functions or
-  // locked coming out of reset. (PA2-5, PB2-3, PD7, PF0)
-  // After this call these ports are set
-  // as GPIO inputs and can be freely re-programmed to change config.
-  // or assign to alternate any functions available on those pins
-  PortFunctionInit();
-
-  // Your hardware initialization function calls go here
 
   // now initialize the Events and Services Framework and start it running
   ErrorType = ES_Initialize(ES_Timer_RATE_1mS);

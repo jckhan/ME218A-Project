@@ -1,6 +1,6 @@
 /****************************************************************************
 
-  Header file for template Flat Sate Machine
+  Header file for the servo state machine
   based on the Gen2 Events and Services Framework
 
  ****************************************************************************/
@@ -27,8 +27,6 @@ bool InitServo(uint8_t Priority);
 bool PostServo(ES_Event_t ThisEvent);
 ES_Event_t RunServo(ES_Event_t ThisEvent);
 ServoState_t QueryServo(void);
-void ResetServo(void);
-void IncrementServo(void);
-void ServoInitialize(void);
+
 #endif 
 

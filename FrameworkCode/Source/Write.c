@@ -19,6 +19,7 @@
  10/12/15 15:15 jec     first pass
  
 ****************************************************************************/
+
 //----------------------------- Include Files -----------------------------*/
 // the common headers for C99 types 
 #include <stdint.h>
@@ -28,6 +29,7 @@
 #include "ShiftRegisterWrite.h"
 #include "LCD_Write.h"
 #include "termio.h"
+
 // Private functions
 static void LCD_SetData4(uint8_t NewData);
 static void LCD_PulseEnable(void);
